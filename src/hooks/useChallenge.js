@@ -73,7 +73,9 @@ export function useChallenge() {
                                 (!Array.isArray(prev.selectedHabits) || prev.selectedHabits.length > 0)) {
                                 merged.selectedHabits = remote.selectedHabits;
                             }
-                            if (remote.activeChallengeId) {
+                            if (remote.activeChallengeId && prev.selectedHabits?.length > 0) {
+                                // Only restore remote activeChallengeId if user hasn't just switched
+                                // (switching clears selectedHabits — if empty locally, keep local choice)
                                 merged.activeChallengeId = remote.activeChallengeId;
                             }
                             if (remote.challenges) {
@@ -108,6 +110,29 @@ export function useChallenge() {
 
         return () => { cancelled = true; };
     }, [userKey]);
+
+    // Re-drain the offline sync queue when user returns to the tab (tab becomes visible)
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                drainPendingSyncs();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Flush state to localStorage on page unload (catches cases where setState batching delayed a save)
+    useEffect(() => {
+        const handleUnload = () => {
+            const currentState = loadState();
+            // Re-read and re-save to ensure the very latest state is persisted
+            saveState({ ...currentState });
+        };
+        window.addEventListener('beforeunload', handleUnload);
+        return () => window.removeEventListener('beforeunload', handleUnload);
+    }, []);
 
     // --- Drain pending sync queue (retry failed Firestore writes) ---
     const drainPendingSyncs = useCallback(async () => {
