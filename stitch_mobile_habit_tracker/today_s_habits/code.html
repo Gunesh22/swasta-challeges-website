@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Momentum - Daily Habits</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .habit-card-active {
+            box-shadow: inset 0 0 0 2px #2dd4bf;
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#2dd4bf",
+                        "inverse-on-surface": "#eaf1ff",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "tertiary-container": "#ffa2ce",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3d0026",
+                        "inverse-surface": "#213145",
+                        "on-surface-variant": "#3c4a46",
+                        "surface-dim": "#cbdbf5",
+                        "outline-variant": "#bacac5",
+                        "primary": "#006b5f",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffd8e7",
+                        "on-secondary-fixed-variant": "#004883",
+                        "tertiary": "#a43073",
+                        "surface-container-high": "#dce9ff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#d3e4fe",
+                        "surface": "#f8f9ff",
+                        "surface-tint": "#006b5f",
+                        "on-error": "#ffffff",
+                        "on-background": "#0b1c30",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary-fixed-variant": "#85145a",
+                        "on-tertiary-container": "#8d1c60",
+                        "primary-fixed": "#62fae3",
+                        "on-primary-container": "#00574d",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#003c70",
+                        "on-surface": "#0b1c30",
+                        "inverse-primary": "#3cddc7",
+                        "outline": "#6b7a76",
+                        "secondary-fixed": "#d4e3ff",
+                        "on-secondary-fixed": "#001c39",
+                        "error-container": "#ffdad6",
+                        "background": "#f8f9ff",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#3cddc7",
+                        "on-primary-fixed": "#00201c",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-fixed-variant": "#005047",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#0060ac",
+                        "tertiary-fixed-dim": "#ffafd3",
+                        "secondary-container": "#64a8fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "container-margin": "20px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "sm": "12px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "xs": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- Top AppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl">
+<div class="flex justify-between items-center px-container-margin h-16 w-full max-w-[768px] mx-auto">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary-container/10 transition-colors duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed">Momentum</h1>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmdV0WqZluRCM38iNlkQ5hg906j3LVOmGgGC9D19h_eoDuPrzlhvX8NCTvjwwuajenFaCms72KT0D7PMN2PTuc8B47twLlo7YrDvDQACUbnBYpV9bg72XPlIBTUAUh5lD92Qb8-W6biAP2tWA9EDkbBANsu7jT8feUlS-EBo26MiQRsYzTil-iM90RWJinAEo5yDaO_lOnAAZx7BGoSilFBmGFbx9cbm5uIIS71xpnYAMiTBRpYdQqb1FB92SlJJinoSgmxE5VGSrj"/>
+</div>
+</div>
+</header>
+<main class="max-w-[768px] mx-auto px-container-margin pt-24">
+<!-- Header Section -->
+<section class="mb-xl flex flex-col items-center text-center">
+<p class="font-label-md text-label-md text-on-surface-variant mb-xs">Today, October 24</p>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-lg">Welcome back!</h2>
+<!-- Progress Ring Visualization -->
+<div class="relative flex items-center justify-center w-48 h-48 mb-lg group">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-surface-container-highest stroke-current" cx="50" cy="50" fill="transparent" r="42" stroke-width="8"></circle>
+<circle class="text-primary-container stroke-current progress-ring-circle" cx="50" cy="50" fill="transparent" id="progress-circle" r="42" stroke-dasharray="263.89" stroke-dashoffset="158.33" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-primary" id="progress-text">60%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Daily Goal</span>
+</div>
+</div>
+</section>
+<!-- Habits List -->
+<div class="space-y-gutter">
+<!-- Habit Item 1 -->
+<div class="habit-card bg-surface-container-lowest p-gutter rounded-xl flex items-center justify-between shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-primary-container/20" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface">Hydration</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">8 glasses target</p>
+</div>
+</div>
+<div class="habit-checkbox w-10 h-10 rounded-full border-2 border-outline flex items-center justify-center transition-all duration-200">
+<span class="material-symbols-outlined text-white hidden scale-0 transition-transform duration-200">check</span>
+</div>
+</div>
+<!-- Habit Item 2 -->
+<div class="habit-card bg-surface-container-lowest p-gutter rounded-xl flex items-center justify-between shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-primary-container/20" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">fitness_center</span>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface">Daily Workout</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">30 min morning routine</p>
+</div>
+</div>
+<div class="habit-checkbox w-10 h-10 rounded-full border-2 border-outline flex items-center justify-center transition-all duration-200">
+<span class="material-symbols-outlined text-white hidden scale-0 transition-transform duration-200">check</span>
+</div>
+</div>
+<!-- Habit Item 3 -->
+<div class="habit-card bg-surface-container-lowest p-gutter rounded-xl flex items-center justify-between shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-primary-container/20" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-tertiary-container/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">book</span>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface">Reading</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">15 pages of philosophy</p>
+</div>
+</div>
+<div class="habit-checkbox w-10 h-10 rounded-full border-2 border-outline flex items-center justify-center transition-all duration-200">
+<span class="material-symbols-outlined text-white hidden scale-0 transition-transform duration-200">check</span>
+</div>
+</div>
+<!-- Habit Item 4 -->
+<div class="habit-card bg-surface-container-lowest p-gutter rounded-xl flex items-center justify-between shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-primary-container/20" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">self_improvement</span>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface">Meditation</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">10 min mindful breathing</p>
+</div>
+</div>
+<div class="habit-checkbox w-10 h-10 rounded-full border-2 border-outline flex items-center justify-center transition-all duration-200">
+<span class="material-symbols-outlined text-white hidden scale-0 transition-transform duration-200">check</span>
+</div>
+</div>
+<!-- Habit Item 5 -->
+<div class="habit-card bg-surface-container-lowest p-gutter rounded-xl flex items-center justify-between shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] cursor-pointer transition-all duration-300 border-2 border-transparent hover:border-primary-container/20" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-secondary-container/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">code</span>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface">Coding Practice</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Finish one UI challenge</p>
+</div>
+</div>
+<div class="habit-checkbox w-10 h-10 rounded-full border-2 border-outline flex items-center justify-center transition-all duration-200">
+<span class="material-symbols-outlined text-white hidden scale-0 transition-transform duration-200">check</span>
+</div>
+</div>
+</div>
+<!-- Add Habit CTA -->
+<div class="mt-xl text-center">
+<button class="bg-primary text-on-primary px-xl py-md rounded-full font-label-md flex items-center gap-xs mx-auto shadow-lg hover:bg-primary/90 transition-all border-b-2 border-primary-fixed/20 active:scale-95">
+<span class="material-symbols-outlined">add</span>
+                Add New Habit
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl z-50 rounded-t-xl shadow-[0px_-4px_20px_rgba(0,0,0,0.04)]">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 scale-95 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-label-sm text-label-sm">Today</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-label-sm text-label-sm">Progress</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        let completedHabits = 0;
+        const totalHabits = 5;
+
+        function toggleHabit(element) {
+            const checkbox = element.querySelector('.habit-checkbox');
+            const checkIcon = checkbox.querySelector('.material-symbols-outlined');
+            const isCompleted = element.classList.toggle('habit-card-active');
+            
+            if (isCompleted) {
+                checkbox.classList.remove('border-outline');
+                checkbox.classList.add('bg-primary-container', 'border-primary-container');
+                checkIcon.classList.remove('hidden');
+                checkIcon.classList.add('block', 'scale-100');
+                completedHabits++;
+            } else {
+                checkbox.classList.add('border-outline');
+                checkbox.classList.remove('bg-primary-container', 'border-primary-container');
+                checkIcon.classList.add('hidden');
+                checkIcon.classList.remove('block', 'scale-100');
+                completedHabits--;
+            }
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percentage = Math.round((completedHabits / totalHabits) * 100);
+            const circle = document.getElementById('progress-circle');
+            const text = document.getElementById('progress-text');
+            
+            // Circumference is 2 * PI * r (r=42) = ~263.89
+            const offset = 263.89 - (percentage / 100 * 263.89);
+            circle.style.strokeDashoffset = offset;
+            text.innerText = percentage + '%';
+        }
+
+        // Initialize progress
+        window.onload = updateProgress;
+    </script>
+</body></html>

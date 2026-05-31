@@ -4,53 +4,45 @@
 export const AVAILABLE_CHALLENGES = [
     {
         id: '11_day_intro',
-        title: '11-Day Meditation Challenge',
+        title: '11-Day Challenge',
         totalDays: 11,
         icon: '🪷',
-        description: 'Begin your journey with 11 days of basic mindfulness and finding inner peace.',
+        description: 'Begin your journey with 11 days of dedicated practice and self-reflection.',
         availableFrom: '2026-03-01'
     },
     {
         id: '21_day_deep',
-        title: '21-Day Deep Silence',
+        title: '21-Day Advance Challenge',
         totalDays: 21,
         icon: '🌌',
-        description: 'Dive deeper into stillness and expand your awareness with this advanced practice.',
+        description: 'Dive deeper into your practice and expand your skills with this advanced journey.',
         availableFrom: '2026-03-05'
     },
     {
         id: '7_day_sleep',
-        title: '7-Day Better Sleep',
+        title: '7-Day Habit Formation',
         totalDays: 7,
         icon: '🌙',
-        description: 'Evening meditations designed to prepare your mind and body for restful sleep.',
+        description: 'Short journey designed to help you form a positive daily habit.',
         availableFrom: '2026-03-15' // Upcoming
     }
 ];
 
 export const TOTAL_DAYS = 11; // Retaining temporarily for backward compatibility if missed during migration
-export const STORAGE_KEY = 'tgf_meditation_challenge';
-
-export const FEELINGS = [
-    { value: 'peaceful', emoji: '☮️', label: 'Peaceful' },
-    { value: 'distracted', emoji: '🌀', label: 'Distracted' },
-    { value: 'deep', emoji: '🌊', label: 'Deep' },
-    { value: 'calm', emoji: '🍃', label: 'Calm' },
-    { value: 'difficult', emoji: '🪨', label: 'Difficult but meaningful' },
-];
+export const STORAGE_KEY = 'tgf_challenge_platform';
 
 export const WISDOMS = [
-    "Your mind becomes quieter with every practice.",
-    "Silence is the language of the soul.",
-    "You are planting seeds of awareness.",
-    "Each breath is a fresh beginning.",
-    "The lotus blooms in muddy water. So can you.",
-    "Stillness is where creativity and solutions are found.",
-    "You're not doing nothing — you're doing the most important thing.",
-    "The quieter you become, the more you can hear.",
-    "Peace is always just one breath away.",
+    "Consistency is the key to lasting change.",
+    "Every small step leads to a bigger destination.",
+    "You are building a foundation of excellence.",
+    "Each day is a fresh beginning for growth.",
+    "Transformation happens one day at a time.",
+    "Dedication is where results are found.",
+    "You're investing in your most important asset — yourself.",
+    "The more you focus, the more you achieve.",
+    "Progress is always within your reach.",
     "You showed up for yourself today. That matters.",
-    "Eleven days of silence will echo for a lifetime.",
+    "The discipline you build today will serve you for a lifetime.",
 ];
 
 export const SESSION_TIMES = [
@@ -61,14 +53,26 @@ export const SESSION_TIMES = [
     { time: '2:30 AM', label: 'IST', hourStart: 0, hourEnd: 5 },
 ];
 
+export const HOLISTIC_HABITS = [
+    { id: 'water', name: 'Drink Water', description: 'Stay hydrated (3L)', icon: 'water_drop', color: 'primary' },
+    { id: 'meditate', name: 'Meditate', description: 'Mindfulness practice (15m)', icon: 'self_improvement', color: 'secondary' },
+    { id: 'read', name: 'Read Book', description: '10 pages a day', icon: 'menu_book', color: 'tertiary' },
+    { id: 'exercise', name: 'Exercise', description: 'Active movement (30m)', icon: 'fitness_center', color: 'primary' },
+    { id: 'journal', name: 'Journaling', description: 'Reflect on today', icon: 'edit_note', color: 'secondary' },
+    { id: 'sleep', name: 'Sleep 8 Hours', description: 'Proper body recovery', icon: 'bedtime', color: 'tertiary' },
+    { id: 'diet', name: 'Healthy Meal', description: 'Fuel your body right', icon: 'restaurant', color: 'primary' }
+];
+
 export const INITIAL_STATE = {
     registered: false,
+    userId: null,
     name: '',
     email: '',
     phone: '',
     language: 'en',
+    selectedHabits: [], // Array of 5 habit IDs selected by the user
 
     // Multi-Challenge Progress
-    activeChallengeId: null, // '11_day_intro'
-    challenges: {}, // { '11_day_intro': { startDate, completedDays, reflections } }
+    activeChallengeId: null, // 'sampurna_swasthya'
+    challenges: {}, // { 'sampurna_swasthya': { startDate, completedDays, Reflections, habitCompletions } }
 };

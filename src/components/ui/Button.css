@@ -23,10 +23,10 @@
 /* Primary */
 .btn--primary {
     padding: 16px 24px;
-    background: linear-gradient(135deg, var(--green-700), var(--green-900));
-    color: var(--green-50);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+    color: #ffffff;
     border-radius: var(--radius-full);
-    box-shadow: 0 4px 20px rgba(46, 125, 50, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 107, 95, 0.2);
 }
 
 /* Secondary */
@@ -54,10 +54,10 @@
 /* Confirm */
 .btn--confirm {
     padding: 15px;
-    background: linear-gradient(135deg, var(--green-700), var(--green-900));
-    color: var(--green-50);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+    color: #ffffff;
     border-radius: var(--radius-full);
-    box-shadow: 0 4px 20px rgba(46, 125, 50, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 107, 95, 0.2);
 }
 
 /* Danger */

@@ -10,13 +10,17 @@ export function useChallenge() {
     const [adminSettings, setAdminSettings] = useState(null);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
 
+    const userKey = state.userId || state.phone || state.email;
+
     // Sync from Firestore on mount
-    // Uses functional setState to avoid stale closure over `state`
     useEffect(() => {
         let cancelled = false;
 
         (async () => {
             try {
+                // 0. Ensure default Sampurna Swasthya challenge exists in the database
+                await firestore.ensureHolisticChallengeExists().catch(console.warn);
+
                 // 1. Fetch Admin Constants (Challenges + Quotes)
                 const [challenges, settings] = await Promise.all([
                     firestore.fetchChallenges(),
@@ -29,13 +33,14 @@ export function useChallenge() {
                 }
 
                 // 2. Fetch User Profile & Auto-Sync
-                // Read phone/name/email from latest state via functional updater pattern
                 const latestState = await new Promise(resolve => {
                     setState(prev => { resolve(prev); return prev; });
                 });
 
-                if (latestState.phone) {
-                    let remote = await firestore.getParticipant(latestState.phone);
+                const currentUserId = latestState.userId || latestState.phone || latestState.email;
+
+                if (currentUserId) {
+                    let remote = await firestore.getParticipant(currentUserId);
 
                     // Recover missing remote profile (if they registered while blocked/offline)
                     if (!remote && latestState.name) {
@@ -50,7 +55,7 @@ export function useChallenge() {
                         // Push any local challenges/progress that didn't make it to Firebase
                         if (latestState.challenges) {
                             await firestore.syncOfflineChallenges(
-                                latestState.phone,
+                                currentUserId,
                                 latestState.challenges,
                                 remote.challenges || {}
                             ).catch(console.warn);
@@ -62,6 +67,9 @@ export function useChallenge() {
                         // Merge remote into state using functional updater to avoid stale data
                         setState(prev => {
                             const merged = { ...prev };
+                            if (remote.selectedHabits) {
+                                merged.selectedHabits = remote.selectedHabits;
+                            }
                             if (remote.challenges) {
                                 merged.challenges = { ...prev.challenges };
                                 for (const [chId, remoteData] of Object.entries(remote.challenges)) {
@@ -72,7 +80,8 @@ export function useChallenge() {
                                             ...remoteData,
                                             ...localData,
                                             completedDays: { ...remoteData.completedDays, ...localData.completedDays },
-                                            reflections: { ...remoteData.reflections, ...localData.reflections }
+                                            reflections: { ...remoteData.reflections, ...localData.reflections },
+                                            habitCompletions: { ...remoteData.habitCompletions, ...localData.habitCompletions }
                                         };
                                     } else {
                                         merged.challenges[chId] = remoteData;
@@ -92,7 +101,7 @@ export function useChallenge() {
         })();
 
         return () => { cancelled = true; };
-    }, [state.phone]);
+    }, [userKey]);
 
     // --- Drain pending sync queue (retry failed Firestore writes) ---
     const drainPendingSyncs = useCallback(async () => {
@@ -127,19 +136,52 @@ export function useChallenge() {
     }, []);
 
     // --- Register User ---
-    const register = useCallback(async (name, email, phone) => {
+    const register = useCallback(async (firstName, lastName, email, phone) => {
+        const name = `${firstName} ${lastName}`.trim();
+        const userId = phone && phone.trim() ? phone.replace(/\D/g, '') : email.toLowerCase().trim();
+
         try {
             const remoteUser = await firestore.registerParticipant({ name, email, phone });
             if (remoteUser) {
-                const merged = { ...state, registered: true, name: remoteUser.name || name, email: remoteUser.email || email, phone: remoteUser.phone || phone, challenges: state.challenges || {} };
+                const merged = {
+                    ...state,
+                    registered: true,
+                    userId: remoteUser.id,
+                    name: remoteUser.name || name,
+                    email: remoteUser.email || email,
+                    phone: remoteUser.phone || phone || '',
+                    selectedHabits: remoteUser.selectedHabits || [],
+                    challenges: state.challenges || {}
+                };
                 persist(merged);
-                return;
+                return merged;
             }
         } catch (err) {
             console.warn('[Firestore] Register failed, using local tracking', err);
         }
 
-        persist({ ...state, registered: true, name, email, phone, challenges: state.challenges || {} });
+        const localUser = {
+            ...state,
+            registered: true,
+            userId,
+            name,
+            email,
+            phone: phone || '',
+            selectedHabits: [],
+            challenges: state.challenges || {}
+        };
+        persist(localUser);
+        return localUser;
+    }, [state, persist]);
+
+    // --- Update selected habits ---
+    const saveSelectedHabits = useCallback(async (selectedHabits) => {
+        const next = { ...state, selectedHabits };
+        persist(next);
+        const currentUserId = state.userId || state.phone || state.email;
+        if (currentUserId) {
+            await firestore.updateSelectedHabits(currentUserId, selectedHabits).catch(console.warn);
+        }
     }, [state, persist]);
 
     // --- Join Challenge ---
@@ -156,12 +198,17 @@ export function useChallenge() {
         const next = { ...state, activeChallengeId: challengeId };
         if (!next.challenges) next.challenges = {};
         if (!next.challenges[challengeId]) {
-            next.challenges[challengeId] = { startDate: actualStartDate, completedDays: {}, reflections: {} };
+            next.challenges[challengeId] = {
+                startDate: actualStartDate,
+                completedDays: {},
+                reflections: {},
+                habitCompletions: {}
+            };
 
-            // Sync to firestore — enqueue on failure for later retry
-            if (state.phone) {
-                firestore.joinChallenge(state.phone, challengeId, actualStartDate).catch(() => {
-                    enqueueSync('joinChallenge', [state.phone, challengeId, actualStartDate]);
+            const currentUserId = state.userId || state.phone || state.email;
+            if (currentUserId) {
+                firestore.joinChallenge(currentUserId, challengeId, actualStartDate).catch(() => {
+                    enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate]);
                 });
             }
         }
@@ -178,14 +225,14 @@ export function useChallenge() {
     const activeChallengeDef = useMemo(() => availableChallenges.find(c => c.id === state.activeChallengeId), [state.activeChallengeId, availableChallenges]);
     const activeData = state.challenges && state.activeChallengeId ? state.challenges[state.activeChallengeId] : null;
 
-    const totalDays = activeChallengeDef ? (Number(activeChallengeDef.durationDays) || Number(activeChallengeDef.totalDays) || 11) : 11;
+    const totalDays = activeChallengeDef ? (Number(activeChallengeDef.durationDays) || Number(activeChallengeDef.totalDays) || 21) : 21;
 
     // Raw current day (can exceed totalDays if the user is past the end)
     const rawCurrentDay = useMemo(() => activeData ? getCurrentDay(activeData.startDate) : 1, [activeData]);
     // Clamped for UI display (never shows > totalDays)
     const clampedCurrentDay = Math.min(rawCurrentDay, totalDays);
 
-    const completedCount = useMemo(() => activeData ? Object.keys(activeData.completedDays || {}).length : 0, [activeData]);
+    const completedCount = useMemo(() => activeData ? Object.keys(activeData.completedDays || {}).filter(date => activeData.completedDays[date]).length : 0, [activeData]);
     const isChallengeComplete = completedCount >= totalDays;
 
     // Grace period: allow up to 2 days after the challenge ends so users
@@ -211,7 +258,7 @@ export function useChallenge() {
     }, [activeData, totalDays, rawCurrentDay, isChallengeComplete, isChallengeFailed]);
 
     // --- Complete a day ---
-    const completeDay = useCallback(async (dayNum, feeling, thought) => {
+    const completeDay = useCallback(async (dayNum, feeling, thought, habitCompletions = null) => {
         if (!activeData || !state.activeChallengeId) return;
 
         // Enforce: only current day ± 2 past days allowed
@@ -223,6 +270,8 @@ export function useChallenge() {
         const challengeId = state.activeChallengeId;
         const currentChallenge = state.challenges[challengeId];
 
+        const isAnyCompleted = habitCompletions ? Object.values(habitCompletions).some(Boolean) : true;
+
         const next = {
             ...state,
             challenges: {
@@ -231,11 +280,15 @@ export function useChallenge() {
                     ...currentChallenge,
                     completedDays: {
                         ...(currentChallenge.completedDays || {}),
-                        [dateForDay]: true,
+                        [dateForDay]: isAnyCompleted,
                     },
                     reflections: {
                         ...(currentChallenge.reflections || {}),
                         [dateForDay]: { feeling, thought }
+                    },
+                    habitCompletions: {
+                        ...(currentChallenge.habitCompletions || {}),
+                        [dateForDay]: habitCompletions
                     }
                 }
             }
@@ -243,9 +296,10 @@ export function useChallenge() {
 
         persist(next);
 
-        if (state.phone) {
-            firestore.completeDay(state.phone, challengeId, dateForDay, feeling, thought).catch(() => {
-                enqueueSync('completeDay', [state.phone, challengeId, dateForDay, feeling, thought]);
+        const currentUserId = state.userId || state.phone || state.email;
+        if (currentUserId) {
+            firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAnyCompleted).catch(() => {
+                enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAnyCompleted]);
             });
         }
     }, [state, activeData, persist, isDayAllowed]);
@@ -277,6 +331,7 @@ export function useChallenge() {
         isChallengeFailed,
         isDataLoaded,
         register,
+        saveSelectedHabits,
         joinSpecificChallenge,
         selectChallenge,
         completeDay,

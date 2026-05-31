@@ -6,13 +6,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBtLTZInxyKjbQCoSvqKOGDdOjhrOFfgaM",
-    authDomain: "tgf-meditation.firebaseapp.com",
-    projectId: "tgf-meditation",
-    storageBucket: "tgf-meditation.firebasestorage.app",
-    messagingSenderId: "795468174785",
-    appId: "1:795468174785:web:3df58c8aa84827e5d58b40",
-    measurementId: "G-BYLRZXC6DH",
+  apiKey: "AIzaSyBUUu6i0tJbJkuZXeYWdUUKKOZY-ajxejE",
+  authDomain: "tgf-challenges.firebaseapp.com",
+  projectId: "tgf-challenges",
+  storageBucket: "tgf-challenges.firebasestorage.app",
+  messagingSenderId: "628255693136",
+  appId: "1:628255693136:web:e319264781674f85403455",
+  measurementId: "G-DY149PH181"
 };
 
 const app = initializeApp(firebaseConfig);

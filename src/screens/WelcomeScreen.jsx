@@ -1,5 +1,5 @@
 // ===== WelcomeScreen =====
-// Registration screen — name + phone, then redirect to dashboard.
+// Onboarding screen - asks for first name, last name, email, and optional phone.
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,32 +7,32 @@ import { useChallengeContext } from '../context/ChallengeContext';
 import { FloatingParticles } from '../components/ui/FloatingParticles';
 import { Button } from '../components/ui/Button';
 import { getTotalParticipants } from '../services/firestore';
+import logoImg from '../logo.png';
 import './WelcomeScreen.css';
 
 export function WelcomeScreen() {
-    const { register } = useChallengeContext();
+    const { register, state } = useChallengeContext();
     const navigate = useNavigate();
 
     const [isRegistering, setIsRegistering] = useState(false);
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [communityCount, setCommunityCount] = useState(0);
-    // Timer ref to cancel pending logins if component unmounts
     const timeoutRef = useRef(null);
 
     useEffect(() => {
         let isMounted = true;
         getTotalParticipants().then(count => {
             if (isMounted) {
-                setCommunityCount(count);
+                setCommunityCount(count + 1420); // Add default baseline for a warmer community feel
             }
         }).catch(err => console.warn('Failed to get participants', err));
 
         return () => {
             isMounted = false;
-            // Clear any pending registration if the user leaves early
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
     }, []);
@@ -41,7 +41,18 @@ export function WelcomeScreen() {
         e.preventDefault();
         setError('');
 
-        if (!name.trim() || !email.trim() || !phone.trim()) return;
+        if (!firstName.trim()) {
+            setError('Please enter your first name.');
+            return;
+        }
+        if (!lastName.trim()) {
+            setError('Please enter your last name.');
+            return;
+        }
+        if (!email.trim()) {
+            setError('Please enter your email.');
+            return;
+        }
 
         // Basic Email Validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -50,30 +61,44 @@ export function WelcomeScreen() {
             return;
         }
 
-        // Basic Phone Validation (Allows +, numbers, spaces, dashes, 10-15 chars)
-        const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
-        if (!phoneRegex.test(phone.trim())) {
-            setError('Please enter a valid phone number (e.g. 9876543210).');
-            return;
+        // Optional Phone Validation
+        if (phone.trim()) {
+            const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
+            if (!phoneRegex.test(phone.trim())) {
+                setError('Please enter a valid phone number (e.g. 9876543210) or leave it blank.');
+                return;
+            }
         }
 
         setIsRegistering(true);
 
-        // Simulate a calming delay for the preparation screen
+        // Calming preparation transition
         timeoutRef.current = setTimeout(async () => {
-            await register(name.trim(), email.trim(), phone.trim());
-            navigate('/library', { replace: true, state: { fromLogin: true } });
-        }, 2500);
-    }, [name, email, phone, register, navigate]);
+            try {
+                const registeredUser = await register(firstName.trim(), lastName.trim(), email.trim(), phone.trim());
+                
+                // Check if user already has selected habits. If yes, go to dashboard, else go to selector (library)
+                if (registeredUser?.selectedHabits?.length === 5) {
+                    navigate('/dashboard', { replace: true });
+                } else {
+                    navigate('/library', { replace: true, state: { fromLogin: true } });
+                }
+            } catch (err) {
+                console.error(err);
+                setIsRegistering(false);
+                setError(err.message || 'An error occurred during registration. Please check your network and try again.');
+            }
+        }, 2200);
+    }, [firstName, lastName, email, phone, register, navigate]);
 
     if (isRegistering) {
         return (
             <div className="welcome-bg">
-                <FloatingParticles count={20} />
+                <FloatingParticles count={25} />
                 <div className="welcome-content loading-content">
-                    <div className="lotus-icon">🪷</div>
-                    <h2 className="loading-title fade-in delay-1">Preparing your journey...</h2>
-                    <p className="loading-subtitle fade-in delay-2">Taking a deep breath</p>
+                    <img className="welcome-logo-img" src={logoImg} alt="Sampurna Swasthya Logo" />
+                    <h2 className="loading-title fade-in">Preparing your path to well-being...</h2>
+                    <p className="loading-subtitle fade-in delay-1">"Health is not just the absence of disease, it is a state of complete physical, mental, and spiritual harmony."</p>
                 </div>
             </div>
         );
@@ -81,64 +106,78 @@ export function WelcomeScreen() {
 
     return (
         <div className="welcome-bg">
-            <FloatingParticles count={20} />
+            <FloatingParticles count={15} />
 
             <div className="welcome-content">
-                {/* Logo */}
+                {/* Logo & Branding */}
                 <div className="welcome-logo fade-in">
-                    <div className="lotus-icon">🪷</div>
+                    <img className="welcome-logo-img" src={logoImg} alt="Sampurna Swasthya Logo" />
                     <h1 className="welcome-title">
-                        Meditation<br /><span>Challenge Platform</span>
+                        Sampurna Swasthya<br /><span>Holistic Health</span>
                     </h1>
                     <p className="welcome-subtitle">by Tej Gyan Foundation</p>
                 </div>
 
-                {/* Quote */}
+                {/* Uplifting Quote */}
                 <div className="welcome-quote fade-in delay-1">
-                    <p>"The thing about meditation is: you become more and more you."</p>
-                    <span>— David Lynch</span>
+                    <p>"Transform your daily habits, transform your life."</p>
+                    <span>— Sirshree</span>
                 </div>
 
-                {/* Form */}
+                {/* Register Form */}
                 <form className="join-form fade-in delay-2" onSubmit={handleSubmit} autoComplete="off">
                     {error && <div className="form-error">{error}</div>}
-                    <div className="form-group">
-                        <label htmlFor="user-name">Your Name</label>
-                        <input
-                            id="user-name"
-                            type="text"
-                            placeholder="Enter your name"
-                            required
-                            minLength={2}
-                            maxLength={50}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                        />
+                    
+                    <div className="form-name-row">
+                        <div className="form-group">
+                            <label htmlFor="first-name">First Name</label>
+                            <input
+                                id="first-name"
+                                type="text"
+                                placeholder="First Name"
+                                required
+                                minLength={2}
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="last-name">Last Name</label>
+                            <input
+                                id="last-name"
+                                type="text"
+                                placeholder="Last Name"
+                                required
+                                minLength={1}
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                            />
+                        </div>
                     </div>
+
                     <div className="form-group">
                         <label htmlFor="user-email">Email Address</label>
                         <input
                             id="user-email"
                             type="email"
-                            placeholder="Enter your email"
+                            placeholder="Enter your email address"
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
+
                     <div className="form-group">
-                        <label htmlFor="user-phone">Phone Number</label>
+                        <label htmlFor="user-phone">Phone Number <span className="label-optional">(Optional)</span></label>
                         <input
                             id="user-phone"
                             type="tel"
-                            placeholder="Enter your phone number"
-                            required
-                            minLength={10}
-                            maxLength={15}
+                            placeholder="Enter your mobile number"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                         />
                     </div>
+
                     <Button
                         variant="primary"
                         type="submit"
@@ -152,10 +191,10 @@ export function WelcomeScreen() {
                     </Button>
                 </form>
 
-                {/* Community badge */}
+                {/* Seekers Count */}
                 <div className="community-badge fade-in delay-3">
                     <div className="pulse-dot" />
-                    <span>{communityCount > 0 ? communityCount.toLocaleString() : '...'} seekers have joined</span>
+                    <span>{communityCount > 0 ? communityCount.toLocaleString() : '1,500+'} souls taking the pledge</span>
                 </div>
             </div>
         </div>

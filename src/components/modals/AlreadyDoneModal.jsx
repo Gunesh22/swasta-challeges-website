@@ -1,5 +1,5 @@
 // ===== AlreadyDoneModal =====
-// Shown when user tries to mark meditation after already completing today.
+// Shown when user tries to mark as completed after already completing today.
 
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';

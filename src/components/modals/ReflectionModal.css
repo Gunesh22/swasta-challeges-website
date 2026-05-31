@@ -10,44 +10,6 @@
     margin-top: 8px;
 }
 
-/* Feelings */
-.feeling-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    width: 100%;
-}
-
-.feeling-chip {
-    cursor: pointer;
-}
-
-.feeling-chip input {
-    display: none;
-}
-
-.feeling-chip span {
-    display: block;
-    padding: 10px 16px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-full);
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
-}
-
-.feeling-chip input:checked+span {
-    background: rgba(76, 175, 80, 0.15);
-    border-color: var(--green-600);
-    color: var(--text-accent);
-}
-
-.feeling-chip:active span {
-    transform: scale(0.96);
-}
-
 /* Thought input */
 .thought-group {
     width: 100%;

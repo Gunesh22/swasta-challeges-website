@@ -90,8 +90,8 @@
     font-size: 28px;
 }
 
-/* Meditate button */
-.btn-meditate {
+/* Complete button */
+.btn-complete {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -111,17 +111,17 @@
     position: relative;
 }
 
-.btn-meditate:active {
+.btn-complete:active {
     transform: scale(0.96);
 }
 
-.btn-meditate.completed {
+.btn-complete.completed {
     background: var(--bg-surface);
     border: 1px solid var(--border-medium);
     color: var(--text-accent);
     box-shadow: none;
 }
 
-.btn-meditate__icon {
+.btn-complete__icon {
     font-size: 1.1rem;
 }

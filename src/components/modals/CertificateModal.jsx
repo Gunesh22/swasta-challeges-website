@@ -44,7 +44,7 @@ export function CertificateModal({ isOpen, onClose }) {
         setIsSharing(true);
         const challengeName = activeChallengeDef?.title || t(language, 'certTitle');
         const text = language === 'hi'
-            ? `🪷 मैंने तेज ज्ञान फाउंडेशन की "${challengeName}" चुनौती पूरी कर ली है!`
+            ? `🪷 मैंने तेज ज्ञान फाउंडेशन की "${challengeName}" सफलतापूर्वक पूरा कर ली है!`
             : `🪷 I completed the Tej Gyan Foundation "${challengeName}"!`;
 
         try {
@@ -56,11 +56,11 @@ export function CertificateModal({ isOpen, onClose }) {
 
             if (!blob) throw new Error("Could not generate image");
 
-            const file = new File([blob], 'tgf-meditation-certificate.png', { type: 'image/png' });
+            const file = new File([blob], 'tgf-challenge-certificate.png', { type: 'image/png' });
 
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
-                    title: 'Meditation Certificate',
+                    title: 'TGF Challenge Certificate',
                     text: text,
                     files: [file],
                 });
@@ -68,7 +68,7 @@ export function CertificateModal({ isOpen, onClose }) {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'tgf-meditation-certificate.png';
+                a.download = 'tgf-challenge-certificate.png';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -102,8 +102,8 @@ export function CertificateModal({ isOpen, onClose }) {
                         <h3 className="cert-name">{state.name || t(language, 'certDefaultName')}</h3>
                         <p className="cert-body">
                             {language === 'hi'
-                                ? `तेज ज्ञान फाउंडेशन ध्यान चुनौती के भाग के रूप में ${totalDays} दिनों तक ध्यान अभ्यास सफलतापूर्वक पूरा करने के लिए।`
-                                : `For successfully completing ${totalDays} days of mindful meditation practice as part of the Tej Gyan Foundation ${activeChallengeDef?.title || 'Meditation Challenge'}.`
+                                ? `तेज ज्ञान फाउंडेशन चुनौती के भाग के रूप में ${totalDays} दिनों की अपनी यात्रा सफलतापूर्वक पूरा करने के लिए।`
+                                : `For successfully completing ${totalDays} days of dedicated practice as part of the Tej Gyan Foundation ${activeChallengeDef?.title || 'Challenge'}.`
                             }
                         </p>
                         <div className="cert-divider" />

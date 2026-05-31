@@ -1,227 +1,185 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+// ===== LibraryScreen (Habit Selection) =====
+// Onboarding page where the user selects exactly 5 out of 7 habits
+
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useChallengeContext } from '../context/ChallengeContext';
-import { Button } from '../components/ui/Button';
+import { HOLISTIC_HABITS } from '../constants';
 import './LibraryScreen.css';
-import { t } from '../utils/translations';
-import { getTodayISO } from '../utils/dateHelpers';
-import { calculateStreak } from '../hooks/useStreak';
 
 export function LibraryScreen() {
-    const displayDate = (dateStr) => {
-        if (!dateStr) return '';
-        try {
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); // "8 March 2026"
-        } catch (e) {
-            return dateStr;
-        }
-    };
-
     const {
         state,
+        saveSelectedHabits,
         joinSpecificChallenge,
-        selectChallenge,
-        language,
-        toggleLanguage,
-        resetChallenge,
-        availableChallenges,
         isDataLoaded
     } = useChallengeContext();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const handleChallengeClick = useCallback((challengeId) => {
-        const isJoined = !!state.challenges?.[challengeId];
+    // Initial selected state from context (if any exist already)
+    const [selected, setSelected] = useState(() => {
+        return state.selectedHabits && state.selectedHabits.length === 5 
+            ? [...state.selectedHabits] 
+            : [];
+    });
 
-        if (isJoined) {
-            selectChallenge(challengeId);
-            navigate('/dashboard');
-        } else {
-            joinSpecificChallenge(challengeId);
-            navigate('/dashboard');
+    const [isSaving, setIsSaving] = useState(false);
+    const isFromLogin = location.state?.fromLogin;
+
+    // If data loaded and user already has exactly 5 habits selected, and they didn't just come from registration/login, redirect to dashboard
+    useEffect(() => {
+        if (isDataLoaded && state.selectedHabits?.length === 5 && !isFromLogin) {
+            navigate('/dashboard', { replace: true });
         }
-    }, [state.challenges, selectChallenge, joinSpecificChallenge, navigate]);
+    }, [isDataLoaded, state.selectedHabits, navigate, isFromLogin]);
 
-    const handleLogout = useCallback(() => {
-        if (window.confirm('Are you sure you want to logout?')) {
-            resetChallenge();
-            navigate('/', { replace: true });
-        }
-    }, [resetChallenge, navigate]);
-
-    // Grouping & Sorting: Running challenges first, then Upcoming
-    const groupedChallenges = useMemo(() => {
-        const today = getTodayISO();
-
-        const running = [];
-        const upcoming = [];
-        const completed = [];
-
-        availableChallenges.forEach(challenge => {
-            const userChallenge = state.challenges?.[challenge.id];
-            const totalDays = Number(challenge.durationDays) || Number(challenge.totalDays) || 11;
-            const completedDaysCount = userChallenge ? Object.keys(userChallenge.completedDays || {}).length : 0;
-            const isCompleted = userChallenge && completedDaysCount >= totalDays;
-
-            // Treat cohort challenges with a future startDate as upcoming
-            const isUpcoming = challenge.startType === 'cohort' && challenge.startDate && challenge.startDate > today;
-
-            if (isCompleted) {
-                completed.push(challenge);
-            } else if (isUpcoming) {
-                upcoming.push(challenge);
+    const handleToggle = useCallback((habitId) => {
+        setSelected(prev => {
+            if (prev.includes(habitId)) {
+                return prev.filter(id => id !== habitId);
             } else {
-                running.push(challenge);
+                if (prev.length >= 5) {
+                    return prev; // Max 5 allowed
+                }
+                return [...prev, habitId];
             }
         });
+    }, []);
 
-        running.sort((a, b) => {
-            const aJoined = !!state.challenges?.[a.id];
-            const bJoined = !!state.challenges?.[b.id];
-            if (aJoined && !bJoined) return -1;
-            if (!aJoined && bJoined) return 1;
-            return 0; // maintain relative order if both or neither are joined
-        });
-
-        return { running, upcoming, completed };
-    }, [availableChallenges, state.challenges]);
+    const handleContinue = useCallback(async () => {
+        if (selected.length !== 5) return;
+        
+        setIsSaving(true);
+        
+        try {
+            // Save selected habits to local state & firebase
+            await saveSelectedHabits(selected);
+            
+            // Join the holistic challenge automatically
+            await joinSpecificChallenge('sampurna_swasthya');
+            
+            // Delay navigation slightly to let the user breathe and absorb the transition quotes
+            setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+            }, 2200);
+        } catch (err) {
+            console.error(err);
+            setIsSaving(false);
+        }
+    }, [selected, saveSelectedHabits, joinSpecificChallenge, navigate]);
 
     if (!isDataLoaded) {
         return (
-            <div className="library-bg">
+            <div className="habit-selection-bg">
                 <div className="loading-container">
                     <div className="lotus-icon spin">🪷</div>
-                    <p>Loading journey options...</p>
+                    <p>Preparing your habits...</p>
                 </div>
             </div>
         );
     }
 
-    const renderChallengeCard = (challenge, isUpcoming, isCompleted = false) => {
-        const userChallenge = state.challenges?.[challenge.id];
-        const isJoined = !!userChallenge;
-        const totalDays = Number(challenge.durationDays) || Number(challenge.totalDays) || 11;
-        const completedDaysCount = userChallenge ? Object.keys(userChallenge.completedDays || {}).length : 0;
-        const percentage = Math.min(Math.round((completedDaysCount / totalDays) * 100), 100);
-
-        let streak = 0;
-        if (isJoined && !isUpcoming) {
-            const streakData = calculateStreak(userChallenge.completedDays || {}, userChallenge.startDate, totalDays);
-            streak = streakData.streak;
-        }
-
+    if (isSaving) {
         return (
-            <div key={challenge.id} className={`challenge-card ${isJoined ? 'joined' : ''} ${isUpcoming ? 'upcoming-card' : ''} ${isCompleted ? 'completed-card' : 'running-card'}`}>
-                <div className="challenge-card-icon">{challenge.icon || '🧘'}</div>
-                <div className="challenge-card-info">
-                    <h4 className="challenge-card-title">
-                        {challenge.title || challenge.name}
-                    </h4>
-
-                    {isJoined && !isCompleted && !isUpcoming && (
-                        <div className="challenge-progress-wrapper">
-                            <div className="challenge-progress-track">
-                                <div className="challenge-progress-fill" style={{ width: `${percentage}%` }}></div>
-                            </div>
-                            <span className="challenge-progress-text">{percentage}% DONE</span>
-                        </div>
-                    )}
-
-                    <p>{challenge.description}</p>
-                    <div className="challenge-meta">
-                        <div className="meta-row">
-                            {isCompleted && <span className="completed-badge">100% Completed</span>}
-                            {isUpcoming && <span className="upcoming-badge">{t(language, 'upcoming')}</span>}
-                            {!isJoined && !isUpcoming && !isCompleted && <span className="running-badge">Available</span>}
-                            <span className="meta-days">{totalDays} {t(language, 'days')}</span>
-                            {isJoined && !isCompleted && !isUpcoming && streak > 0 && (
-                                <span className="meta-streak">🔥 {streak} {t(language, 'days')}</span>
-                            )}
-                        </div>
-                        {!isUpcoming && challenge.startDate && (
-                            <span className="meta-started">
-                                Started: {displayDate(challenge.startDate)}
-                            </span>
-                        )}
-                        {isUpcoming && challenge.startDate && (
-                            <span className="meta-available">
-                                Starts: {displayDate(challenge.startDate)}
-                            </span>
-                        )}
-                        {isJoined && !isUpcoming && challenge.startType === 'rolling' && (
-                            <span className="meta-joined">
-                                Joined on: {displayDate(userChallenge.startDate)}
-                            </span>
-                        )}
-                    </div>
-                </div>
-                <div className="challenge-card-action">
-                    <Button
-                        variant={isCompleted ? 'secondary' : (isJoined ? 'primary' : 'secondary')}
-                        onClick={() => !isUpcoming && handleChallengeClick(challenge.id)}
-                        disabled={isUpcoming}
-                    >
-                        {isCompleted ? 'View' : (isJoined ? 'Continue' : (isUpcoming ? 'Locked' : 'Join'))}
-                    </Button>
+            <div className="welcome-bg">
+                <div className="welcome-content loading-content">
+                    <div className="lotus-icon spin-slow">🪷</div>
+                    <h2 className="loading-title fade-in">Aligning your chosen practices...</h2>
+                    <p className="loading-subtitle fade-in delay-1">
+                        "Consistency is the path to inner alignment. Please breathe deeply as we build your daily holistic challenge sanctuary."
+                    </p>
                 </div>
             </div>
         );
-    };
+    }
+
+    const progressPercent = Math.min((selected.length / 5) * 100, 100);
 
     return (
-        <div className="library-bg">
-            <header className="library-header">
-                <div>
-                    <span className="greeting-hello">{t(language, 'greeting')}</span>
-                    <h2 className="greeting-name">{state.name} 🌿</h2>
+        <div className="habit-selection-bg">
+            {/* Top Bar */}
+            <header className="selection-header">
+                <div className="header-brand">
+                    <span className="brand-lotus">🪷</span>
+                    <span className="brand-text">Sampurna Swasthya</span>
                 </div>
-                <button className="lang-toggle-btn" onClick={toggleLanguage}>
-                    {language === 'en' ? 'अ / A' : 'A / अ'}
-                </button>
+                <div className="user-profile-badge">
+                    <div className="avatar-circle">
+                        {state.name ? state.name.charAt(0).toUpperCase() : 'S'}
+                    </div>
+                </div>
             </header>
 
-            <main className="library-main">
-                <section className="library-section">
-                    <h3 className="section-title">{t(language, 'libraryTitle')}</h3>
-                    <p className="section-subtitle">{t(language, 'librarySub')}</p>
-
-                    {groupedChallenges.running.length > 0 && (
-                        <div className="challenge-group">
-                            <h5 className="group-label">Running Now</h5>
-                            <div className="challenge-list">
-                                {groupedChallenges.running.map(c => renderChallengeCard(c, false, false))}
-                            </div>
-                        </div>
-                    )}
-
-                    {groupedChallenges.upcoming.length > 0 && (
-                        <div className="challenge-group">
-                            <h5 className="group-label">Upcoming</h5>
-                            <div className="challenge-list">
-                                {groupedChallenges.upcoming.map(c => renderChallengeCard(c, true, false))}
-                            </div>
-                        </div>
-                    )}
-
-                    {groupedChallenges.completed.length > 0 && (
-                        <div className="challenge-group">
-                            <h5 className="group-label">Completed</h5>
-                            <div className="challenge-list">
-                                {groupedChallenges.completed.map(c => renderChallengeCard(c, false, true))}
-                            </div>
-                        </div>
-                    )}
-
-                    {availableChallenges.length === 0 && (
-                        <p className="section-subtitle" style={{ textAlign: 'center', marginTop: '40px' }}>No active challenges available at the moment.</p>
-                    )}
+            <main className="selection-main">
+                {/* Intro Title */}
+                <section className="selection-intro">
+                    <h2 className="intro-title">Choose Your Core 5</h2>
+                    <p className="intro-subtitle">
+                        Select exactly 5 habits to anchor your daily routine. Sustainable growth starts with consistency.
+                    </p>
                 </section>
+
+                {/* Progress Bar Track */}
+                <section className="progress-sticky">
+                    <div className="progress-label-row">
+                        <span className={`progress-count ${selected.length === 5 ? 'success-count' : ''}`}>
+                            {selected.length} of 5 selected
+                        </span>
+                        <span className={`progress-hint ${selected.length === 5 ? 'success-hint' : ''}`}>
+                            {selected.length === 5 ? 'Perfect selection!' : `Choose ${5 - selected.length} more`}
+                        </span>
+                    </div>
+                    <div className="progress-track">
+                        <div className="progress-fill" style={{ width: `${progressPercent}%` }}></div>
+                    </div>
+                </section>
+
+                {/* Habit Grid */}
+                <div className="habit-grid">
+                    {HOLISTIC_HABITS.map((habit) => {
+                        const isSelected = selected.includes(habit.id);
+                        const isDisabled = !isSelected && selected.length >= 5;
+
+                        return (
+                            <button
+                                key={habit.id}
+                                className={`habit-card-btn ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled-card' : ''}`}
+                                onClick={() => handleToggle(habit.id)}
+                                disabled={isDisabled}
+                            >
+                                <div className="card-left">
+                                    <div className={`habit-icon-wrapper ${habit.color}`}>
+                                        <span className="material-symbols-outlined">{habit.icon}</span>
+                                    </div>
+                                    <div className="habit-text-info">
+                                        <h4 className="habit-card-name">{habit.name}</h4>
+                                        <p className="habit-card-desc">{habit.description}</p>
+                                    </div>
+                                </div>
+                                <div className="card-right">
+                                    <span className="material-symbols-outlined check-icon">
+                                        {isSelected ? 'check_circle' : 'radio_button_unchecked'}
+                                    </span>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
             </main>
 
-            <footer className="library-footer">
-                <button className="btn-reset" onClick={handleLogout}>
-                    {t(language, 'logout')}
-                </button>
+            {/* Bottom Continue Button Footer */}
+            <footer className="selection-footer">
+                <div className="footer-container">
+                    <button
+                        className="continue-button"
+                        disabled={selected.length !== 5}
+                        onClick={handleContinue}
+                    >
+                        <span>Begin 21-Day Challenge</span>
+                        <span className="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
             </footer>
         </div>
     );

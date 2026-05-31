@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Momentum - Progress</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .progress-bar-3d {
+            background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 100%);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#2dd4bf",
+                        "inverse-on-surface": "#eaf1ff",
+                        "secondary-fixed-dim": "#a4c9ff",
+                        "tertiary-container": "#ffa2ce",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed": "#3d0026",
+                        "inverse-surface": "#213145",
+                        "on-surface-variant": "#3c4a46",
+                        "surface-dim": "#cbdbf5",
+                        "outline-variant": "#bacac5",
+                        "primary": "#006b5f",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffd8e7",
+                        "on-secondary-fixed-variant": "#004883",
+                        "tertiary": "#a43073",
+                        "surface-container-high": "#dce9ff",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#d3e4fe",
+                        "surface": "#f8f9ff",
+                        "surface-tint": "#006b5f",
+                        "on-error": "#ffffff",
+                        "on-background": "#0b1c30",
+                        "surface-container": "#e5eeff",
+                        "on-tertiary-fixed-variant": "#85145a",
+                        "on-tertiary-container": "#8d1c60",
+                        "primary-fixed": "#62fae3",
+                        "on-primary-container": "#00574d",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#003c70",
+                        "on-surface": "#0b1c30",
+                        "inverse-primary": "#3cddc7",
+                        "outline": "#6b7a76",
+                        "secondary-fixed": "#d4e3ff",
+                        "on-secondary-fixed": "#001c39",
+                        "error-container": "#ffdad6",
+                        "background": "#f8f9ff",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#3cddc7",
+                        "on-primary-fixed": "#00201c",
+                        "surface-bright": "#f8f9ff",
+                        "on-primary-fixed-variant": "#005047",
+                        "surface-container-highest": "#d3e4fe",
+                        "surface-container-low": "#eff4ff",
+                        "secondary": "#0060ac",
+                        "tertiary-fixed-dim": "#ffafd3",
+                        "secondary-container": "#64a8fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xxl": "48px",
+                        "container-margin": "20px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "md": "16px",
+                        "sm": "12px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "xs": "8px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl h-16">
+<div class="flex justify-between items-center px-container-margin h-16 w-full max-w-[768px] mx-auto">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary-container/10 transition-colors duration-200">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed">Momentum</h1>
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional close-up portrait of a person with a warm, encouraging smile, set against a soft-focus studio background. The lighting is bright and airy, reflecting a clean light-mode aesthetic. The individual wears a minimalist teal shirt, echoing the primary brand colors of the Momentum application. The mood is confident, approachable, and focused on personal growth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_O8J98tcf-kq0m6RhcEO0fdZQrxW-G3S-182YPAGWVk-MLLuxxyge6ZbZAtOCZDBbc5cNw4Uw2S0jXKXAtmGRbmFCvV2BrdUCLoyn2BS2hzeO8D1uyk5r6NsONTcZkEhgLuqqENiVLsWmzikz5GktPMpnj_QREs6PrjSAs_vubRrPmKk5oEo_Lvt29iWb8GGQVkH75-Z-uy6Lckana0CPSTy14jVVZa_ULzWnov7JRKYd9GzyQBmPSnHWwESGK_SKWIUWKx_y4CzT"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-container-margin max-w-[768px] mx-auto">
+<!-- Header Section -->
+<section class="mb-lg">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Your Progress</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Consistency is the key to mastery.</p>
+</section>
+<!-- Stats Bento Grid -->
+<section class="grid grid-cols-2 gap-md mb-lg">
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center justify-center text-center">
+<div class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center mb-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface">12 Days</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Current Streak</span>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center justify-center text-center">
+<div class="w-12 h-12 rounded-full bg-secondary-container/20 flex items-center justify-center mb-sm">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface">148</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Total Completions</span>
+</div>
+</section>
+<!-- Segmented Control -->
+<section class="mb-lg">
+<div class="bg-surface-container-low p-1 rounded-full flex">
+<button class="flex-1 py-2 px-4 rounded-full font-label-md text-label-md transition-all duration-300 bg-primary-container text-on-primary-container shadow-sm" id="weeklyTab" onclick="switchView('weekly')">
+                    Weekly
+                </button>
+<button class="flex-1 py-2 px-4 rounded-full font-label-md text-label-md transition-all duration-300 text-on-surface-variant hover:bg-surface-container-high" id="monthlyTab" onclick="switchView('monthly')">
+                    Monthly
+                </button>
+</div>
+</section>
+<!-- Visualization Container -->
+<section class="bg-surface-container-lowest p-lg rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] min-h-[320px] transition-opacity duration-300" id="visualizationCanvas">
+<!-- Weekly View (Default) -->
+<div class="flex flex-col h-full" id="weeklyView">
+<div class="flex justify-between items-end h-48 mb-lg px-2">
+<!-- Monday -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-primary-container rounded-full relative group cursor-pointer progress-bar-3d" style="height: 60%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">6/8</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mon</span>
+</div>
+<!-- Tuesday -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-primary-container rounded-full relative group cursor-pointer progress-bar-3d" style="height: 85%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">7/8</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tue</span>
+</div>
+<!-- Wednesday -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-primary-container rounded-full relative group cursor-pointer progress-bar-3d" style="height: 40%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">3/8</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Wed</span>
+</div>
+<!-- Thursday -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-primary-container rounded-full relative group cursor-pointer progress-bar-3d" style="height: 100%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">8/8</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Thu</span>
+</div>
+<!-- Friday -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-primary-container rounded-full relative group cursor-pointer progress-bar-3d" style="height: 75%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">6/8</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Fri</span>
+</div>
+<!-- Saturday -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-primary-container/40 rounded-full relative group cursor-pointer progress-bar-3d" style="height: 30%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">2/8</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sat</span>
+</div>
+<!-- Sunday (Today) -->
+<div class="flex flex-col items-center gap-sm flex-1">
+<div class="w-8 bg-secondary-container rounded-full relative group cursor-pointer progress-bar-3d ring-2 ring-secondary ring-offset-2" style="height: 90%;">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">Today</div>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">Sun</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-md rounded-lg">
+<p class="font-body-md text-body-md text-on-surface-variant">You've completed <span class="font-bold text-primary">32 habits</span> this week. That's 12% more than last week!</p>
+</div>
+</div>
+<!-- Monthly View (Hidden by default) -->
+<div class="hidden flex flex-col h-full" id="monthlyView">
+<div class="flex justify-between items-center mb-md">
+<span class="font-label-md text-label-md font-bold">October 2023</span>
+<div class="flex gap-xs">
+<button class="p-1 hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="p-1 hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center mb-2">
+<span class="text-[10px] uppercase text-on-surface-variant">S</span>
+<span class="text-[10px] uppercase text-on-surface-variant">M</span>
+<span class="text-[10px] uppercase text-on-surface-variant">T</span>
+<span class="text-[10px] uppercase text-on-surface-variant">W</span>
+<span class="text-[10px] uppercase text-on-surface-variant">T</span>
+<span class="text-[10px] uppercase text-on-surface-variant">F</span>
+<span class="text-[10px] uppercase text-on-surface-variant">S</span>
+</div>
+<div class="grid grid-cols-7 gap-2" id="calendarGrid">
+<!-- Javascript will fill this with heatmap dots or we can mock it -->
+<!-- Empty slots for previous month -->
+<div class="aspect-square"></div><div class="aspect-square"></div>
+<!-- Real days -->
+<div class="aspect-square rounded-sm bg-primary-container/20 flex items-center justify-center text-[10px]">1</div>
+<div class="aspect-square rounded-sm bg-primary-container/40 flex items-center justify-center text-[10px]">2</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">3</div>
+<div class="aspect-square rounded-sm bg-primary-container/60 flex items-center justify-center text-[10px]">4</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">5</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">6</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">7</div>
+<div class="aspect-square rounded-sm bg-surface-container flex items-center justify-center text-[10px]">8</div>
+<div class="aspect-square rounded-sm bg-primary-container/80 flex items-center justify-center text-[10px]">9</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">10</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">11</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">12</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">13</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">14</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">15</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">16</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">17</div>
+<div class="aspect-square rounded-sm bg-primary-container/40 flex items-center justify-center text-[10px]">18</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">19</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">20</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">21</div>
+<div class="aspect-square rounded-sm bg-primary-container flex items-center justify-center text-[10px] text-white">22</div>
+<div class="aspect-square rounded-sm bg-secondary-container ring-1 ring-secondary ring-inset flex items-center justify-center text-[10px] font-bold">23</div>
+<div class="aspect-square rounded-sm bg-surface-container text-on-surface-variant/40 flex items-center justify-center text-[10px]">24</div>
+<div class="aspect-square rounded-sm bg-surface-container text-on-surface-variant/40 flex items-center justify-center text-[10px]">25</div>
+<div class="aspect-square rounded-sm bg-surface-container text-on-surface-variant/40 flex items-center justify-center text-[10px]">26</div>
+</div>
+<div class="mt-lg flex items-center gap-sm">
+<span class="text-[10px] text-on-surface-variant">Less</span>
+<div class="flex gap-1">
+<div class="w-3 h-3 rounded-sm bg-surface-container"></div>
+<div class="w-3 h-3 rounded-sm bg-primary-container/20"></div>
+<div class="w-3 h-3 rounded-sm bg-primary-container/60"></div>
+<div class="w-3 h-3 rounded-sm bg-primary-container"></div>
+</div>
+<span class="text-[10px] text-on-surface-variant">More</span>
+</div>
+</div>
+</section>
+<!-- Insights Section -->
+<section class="mt-lg">
+<h3 class="font-headline-md text-headline-md mb-md text-on-surface">Daily Breakdown</h3>
+<div class="space-y-md">
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary">water_drop</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-md text-label-md">Hydration</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">80%</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 80%;"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">menu_book</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-md text-label-md">Morning Reading</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">100%</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] flex items-center gap-md">
+<div class="w-12 h-12 rounded-lg bg-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface-variant">self_improvement</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-md text-label-md">Meditation</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">45%</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed-dim rounded-full" style="width: 45%;"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Nav Bar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-xl shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="font-label-sm text-label-sm">Today</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm text-label-sm">Progress</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150 scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        function switchView(view) {
+            const weeklyTab = document.getElementById('weeklyTab');
+            const monthlyTab = document.getElementById('monthlyTab');
+            const weeklyView = document.getElementById('weeklyView');
+            const monthlyView = document.getElementById('monthlyView');
+            const container = document.getElementById('visualizationCanvas');
+
+            container.classList.add('opacity-0');
+
+            setTimeout(() => {
+                if (view === 'weekly') {
+                    weeklyTab.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-sm');
+                    weeklyTab.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-high');
+                    
+                    monthlyTab.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-sm');
+                    monthlyTab.classList.add('text-on-surface-variant', 'hover:bg-surface-container-high');
+                    
+                    weeklyView.classList.remove('hidden');
+                    monthlyView.classList.add('hidden');
+                } else {
+                    monthlyTab.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-sm');
+                    monthlyTab.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-high');
+                    
+                    weeklyTab.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-sm');
+                    weeklyTab.classList.add('text-on-surface-variant', 'hover:bg-surface-container-high');
+                    
+                    monthlyView.classList.remove('hidden');
+                    weeklyView.classList.add('hidden');
+                }
+                container.classList.remove('opacity-0');
+            }, 150);
+        }
+
+        // Simple atmospheric interaction: light movement on cards based on mouse
+        document.querySelectorAll('.bg-surface-container-lowest').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+                card.style.transition = 'none';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transition = 'all 0.3s ease-in-out';
+            });
+        });
+    </script>
+</body></html>

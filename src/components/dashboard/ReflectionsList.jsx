@@ -1,10 +1,9 @@
 // ===== ReflectionsList =====
-// Shows past meditation reflections.
+// Shows past challenge reflections.
 
 import { useMemo } from 'react';
 import { useChallengeContext } from '../../context/ChallengeContext';
 import { getDayIndexForDate } from '../../utils/dateHelpers';
-import { FEELINGS } from '../../constants';
 import { t } from '../../utils/translations';
 import './ReflectionsList.css';
 
@@ -19,12 +18,7 @@ export function ReflectionsList() {
 
     if (entries.length === 0) return null;
 
-    const feelingLabel = (value) => {
-        const transKey = `feeling_${value}`;
-        const translated = t(language, transKey);
-        const f = FEELINGS.find((f) => f.value === value);
-        return f ? `${f.emoji} ${translated}` : translated;
-    };
+
 
     return (
         <section className="reflections-section">
@@ -38,11 +32,6 @@ export function ReflectionsList() {
                         <div key={date} className="reflection-item">
                             <div className="reflection-item__header">
                                 <span className="reflection-item__day">{t(language, 'day')} {dayIdx}</span>
-                                {data.feeling && (
-                                    <span className="reflection-item__feeling">
-                                        {feelingLabel(data.feeling)}
-                                    </span>
-                                )}
                             </div>
                             {data.thought && (
                                 <p className="reflection-item__thought">"{data.thought}"</p>

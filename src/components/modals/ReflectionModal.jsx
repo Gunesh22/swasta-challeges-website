@@ -6,7 +6,7 @@ import { useState, useCallback } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useChallengeContext } from '../../context/ChallengeContext';
-import { FEELINGS, WISDOMS } from '../../constants';
+import { WISDOMS } from '../../constants';
 import { t } from '../../utils/translations';
 import './ReflectionModal.css';
 
@@ -15,23 +15,22 @@ const STEPS = { CONFIRM: 'confirm', REFLECT: 'reflect', COMPLETE: 'complete' };
 export function ReflectionModal({ isOpen, onClose, dayNum, onComplete }) {
     const { completeDay, language } = useChallengeContext();
     const [step, setStep] = useState(STEPS.CONFIRM);
-    const [feeling, setFeeling] = useState('');
     const [thought, setThought] = useState('');
 
     const handleConfirmYes = useCallback(() => {
-        setStep(STEPS.REFLECT);
-    }, []);
+        completeDay(dayNum, '', '');
+        setStep(STEPS.COMPLETE);
+    }, [dayNum, completeDay]);
 
     const handleSubmit = useCallback(() => {
         // Basic XSS mitigation: strip < and > tags from the thought string
         const sanitizedThought = thought ? thought.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-        completeDay(dayNum, feeling || '', sanitizedThought);
+        completeDay(dayNum, '', sanitizedThought);
         setStep(STEPS.COMPLETE);
-    }, [dayNum, feeling, thought, completeDay]);
+    }, [dayNum, thought, completeDay]);
 
     const handleDone = useCallback(() => {
         setStep(STEPS.CONFIRM);
-        setFeeling('');
         setThought('');
         onClose();
         if (onComplete) onComplete();
@@ -39,7 +38,6 @@ export function ReflectionModal({ isOpen, onClose, dayNum, onComplete }) {
 
     const handleClose = useCallback(() => {
         setStep(STEPS.CONFIRM);
-        setFeeling('');
         setThought('');
         onClose();
     }, [onClose]);
@@ -53,7 +51,7 @@ export function ReflectionModal({ isOpen, onClose, dayNum, onComplete }) {
             {/* Step 1: Confirm */}
             {step === STEPS.CONFIRM && (
                 <div className="modal-step">
-                    <div className="modal-icon">🌿</div>
+                    <div className="modal-icon">✨</div>
                     <h3>{t(language, 'reflectConfirmTitle', { day: dayNum })}</h3>
                     <p>{t(language, 'reflectConfirmSub')}</p>
                     <div className="confirm-buttons">
@@ -67,43 +65,7 @@ export function ReflectionModal({ isOpen, onClose, dayNum, onComplete }) {
                 </div>
             )}
 
-            {/* Step 2: Reflect */}
-            {step === STEPS.REFLECT && (
-                <div className="modal-step">
-                    <div className="modal-icon">💭</div>
-                    <h3>{t(language, 'reflectFeelingTitle')}</h3>
-                    <div className="feeling-options">
-                        {FEELINGS.map((f) => (
-                            <label key={f.value} className="feeling-chip">
-                                <input
-                                    type="radio"
-                                    name="feeling"
-                                    value={f.value}
-                                    checked={feeling === f.value}
-                                    onChange={() => setFeeling(f.value)}
-                                />
-                                <span>{f.emoji} {t(language, `feeling_${f.value}`)}</span>
-                            </label>
-                        ))}
-                    </div>
-                    <div className="thought-group">
-                        <label htmlFor="thought-input">
-                            {t(language, 'reflectThoughtShare')} <span className="optional-tag">{t(language, 'reflectOptionalTag')}</span>
-                        </label>
-                        <textarea
-                            id="thought-input"
-                            placeholder={t(language, 'reflectThoughtPlaceholder')}
-                            rows={3}
-                            maxLength={280}
-                            value={thought}
-                            onChange={(e) => setThought(e.target.value)}
-                        />
-                    </div>
-                    <Button variant="primary" onClick={handleSubmit}>
-                        {t(language, 'reflectSubmitBtn')}
-                    </Button>
-                </div>
-            )}
+
 
             {/* Step 3: Complete */}
             {step === STEPS.COMPLETE && (
@@ -114,7 +76,7 @@ export function ReflectionModal({ isOpen, onClose, dayNum, onComplete }) {
                             <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
                         </svg>
                     </div>
-                    <div className="modal-icon">🌿</div>
+                    <div className="modal-icon">✨</div>
                     <h3>{t(language, 'reflectCompletedTitle')}</h3>
                     <p className="completion-day">{t(language, 'reflectDayCompleted', { day: dayNum })}</p>
                     <p className="completion-wisdom">{wisdom}</p>

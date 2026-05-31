@@ -12,17 +12,18 @@ export function ChallengeProvider({ children }) {
     const streak = useStreak(
         challenge.activeData?.completedDays || {},
         challenge.activeData?.startDate || null,
-        challenge.totalDays
+        challenge.totalDays,
+        challenge.currentDay
     );
 
     const [language, setLanguage] = useState(() => {
-        return localStorage.getItem('tgf_meditation_language') || 'en';
+        return localStorage.getItem('tgf_challenge_language') || 'en';
     });
 
     const toggleLanguage = useCallback(() => {
         setLanguage(prev => {
             const nextLang = prev === 'en' ? 'hi' : 'en';
-            localStorage.setItem('tgf_meditation_language', nextLang);
+            localStorage.setItem('tgf_challenge_language', nextLang);
             return nextLang;
         });
     }, []);

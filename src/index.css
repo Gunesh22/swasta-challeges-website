@@ -9,55 +9,63 @@
 }
 
 :root {
-    /* Background */
-    --bg-deep: #060e0a;
-    --bg-card: #0d1f16;
-    --bg-card-hover: #132b1e;
-    --bg-surface: #162a1f;
-    --bg-glass: rgba(16, 42, 28, 0.65);
+    /* Backgrounds & Surfaces (Light Momentum Theme) */
+    --bg-deep: #f8f9ff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f0fdfa;
+    --bg-surface: #eff4ff;
+    --bg-glass: rgba(255, 255, 255, 0.85);
 
-    /* Green palette */
-    --green-50: #e8f5e9;
-    --green-100: #c8e6c9;
-    --green-200: #a5d6a7;
-    --green-300: #81c784;
-    --green-400: #66bb6a;
-    --green-500: #4caf50;
-    --green-600: #43a047;
-    --green-700: #388e3c;
-    --green-800: #2e7d32;
-    --green-900: #1b5e20;
+    /* Stitch Core Colors */
+    --primary: #006b5f;
+    --primary-container: #2dd4bf;
+    --on-primary-container: #00574d;
+    --secondary: #0060ac;
+    --outline: #6b7a76;
+    
+    /* Green palette mapping for backwards compatibility or progress colors */
+    --green-50: #f0fdfa;
+    --green-100: #ccfbf1;
+    --green-200: #99f6e4;
+    --green-300: #5eead4;
+    --green-400: #2dd4bf;
+    --green-500: #14b8a6;
+    --green-600: #0d9488;
+    --green-700: #0f766e;
+    --green-800: #115e59;
+    --green-900: #134e4a;
 
-    /* Gold accent */
-    --gold-300: #ffd54f;
-    --gold-400: #ffca28;
-    --gold-500: #ffc107;
-    --gold-600: #ffb300;
+    /* Gold accent mapping */
+    --gold-300: #fde047;
+    --gold-400: #facc15;
+    --gold-500: #eab308;
+    --gold-600: #ca8a04;
 
-    /* Text */
-    --text-primary: #e8f0ec;
-    --text-secondary: #9db8a8;
-    --text-muted: #6a8a78;
-    --text-accent: #a8e6b0;
+    /* Text (Stitch high contrast) */
+    --text-primary: #0b1c30;
+    --text-secondary: #3c4a46;
+    --text-muted: #6b7a76;
+    --text-accent: #006b5f;
 
     /* Borders */
-    --border-subtle: rgba(168, 230, 176, 0.08);
-    --border-medium: rgba(168, 230, 176, 0.15);
+    --border-subtle: rgba(0, 107, 95, 0.08);
+    --border-medium: rgba(0, 107, 95, 0.15);
 
     /* Radii */
-    --radius-sm: 10px;
-    --radius-md: 14px;
-    --radius-lg: 20px;
-    --radius-xl: 28px;
-    --radius-full: 100px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
 
     /* Shadows */
-    --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.3);
-    --shadow-glow: 0 0 40px rgba(76, 175, 80, 0.15);
+    --shadow-soft: 0px 4px 20px rgba(0, 0, 0, 0.04);
+    --shadow-hover: 0 10px 25px -5px rgba(0, 107, 95, 0.08), 0 8px 10px -6px rgba(0, 107, 95, 0.08);
+    --shadow-glow: 0 0 30px rgba(45, 212, 191, 0.2);
 
     /* Typography */
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Plus Jakarta Sans', Georgia, serif;
 }
 
 html {

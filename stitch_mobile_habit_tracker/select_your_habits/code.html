@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#2dd4bf",
+                    "inverse-on-surface": "#eaf1ff",
+                    "secondary-fixed-dim": "#a4c9ff",
+                    "tertiary-container": "#ffa2ce",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#3d0026",
+                    "inverse-surface": "#213145",
+                    "on-surface-variant": "#3c4a46",
+                    "surface-dim": "#cbdbf5",
+                    "outline-variant": "#bacac5",
+                    "primary": "#006b5f",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed": "#ffd8e7",
+                    "on-secondary-fixed-variant": "#004883",
+                    "tertiary": "#a43073",
+                    "surface-container-high": "#dce9ff",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#d3e4fe",
+                    "surface": "#f8f9ff",
+                    "surface-tint": "#006b5f",
+                    "on-error": "#ffffff",
+                    "on-background": "#0b1c30",
+                    "surface-container": "#e5eeff",
+                    "on-tertiary-fixed-variant": "#85145a",
+                    "on-tertiary-container": "#8d1c60",
+                    "primary-fixed": "#62fae3",
+                    "on-primary-container": "#00574d",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#003c70",
+                    "on-surface": "#0b1c30",
+                    "inverse-primary": "#3cddc7",
+                    "outline": "#6b7a76",
+                    "secondary-fixed": "#d4e3ff",
+                    "on-secondary-fixed": "#001c39",
+                    "error-container": "#ffdad6",
+                    "background": "#f8f9ff",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#3cddc7",
+                    "on-primary-fixed": "#00201c",
+                    "surface-bright": "#f8f9ff",
+                    "on-primary-fixed-variant": "#005047",
+                    "surface-container-highest": "#d3e4fe",
+                    "surface-container-low": "#eff4ff",
+                    "secondary": "#0060ac",
+                    "tertiary-fixed-dim": "#ffafd3",
+                    "secondary-container": "#64a8fe"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xxl": "48px",
+                    "container-margin": "20px",
+                    "lg": "24px",
+                    "gutter": "16px",
+                    "md": "16px",
+                    "sm": "12px",
+                    "base": "4px",
+                    "xl": "32px",
+                    "xs": "8px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .habit-card-selected {
+            border: 2px solid var(--tw-primary);
+            background-color: #f0fdfa; /* tailwind teal-50 approx */
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 107, 95, 0.1);
+        }
+        .progress-bar-fill {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pill-shadow {
+            box-shadow: 0 4px 0px 0px rgba(0, 0, 0, 0.1);
+        }
+        .pill-shadow:active {
+            box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.1);
+            transform: translateY(2px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top App Bar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl h-16 flex justify-between items-center px-container-margin max-w-[768px] left-1/2 -translate-x-1/2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary-container/10 text-primary transition-colors duration-200">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-primary tracking-tight">Momentum</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container/30">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A clean, professional close-up portrait of a young adult with a friendly expression. The background is a soft, out-of-focus interior with warm, natural sunlight. The lighting is bright and airy, reflecting a modern, minimalist aesthetic that feels optimistic and calm, perfectly aligned with a wellness and habit-tracking app's visual identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy0btvYdhDsv0tLzXIPWYMYZ-7aprb_x6gLGhiClLRmOAGDue2pppb575px96XZNnuxv3rZ_jIPROwfuPvBchvKRJS2S2LfGimFkjRQVHcq-waN5gaXgG93hLMG4_cTXcxuWmtqz_3ctknwA5jyOoa1xwhsuQWxOAf0id8mNwfPwjjKQDfFi76cLdIrZko-RSD26bCmZLBJWvTyrylgqMuDOKr8UK-U0UjQQQTHlNGXvhlvmNQANnFOH5NL2AF5cSjmQ2bL50punik"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-32 px-container-margin max-w-[768px] mx-auto">
+<!-- Welcome Section -->
+<section class="mb-xl text-center">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface mb-xs">Choose Your Core 5</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[400px] mx-auto">
+                Select 5 habits to anchor your daily routine. Sustainable growth starts with consistency.
+            </p>
+</section>
+<!-- Progress Indicator -->
+<section class="mb-lg sticky top-20 z-40 bg-background/95 py-2 backdrop-blur-sm">
+<div class="flex justify-between items-end mb-xs">
+<span class="font-label-md text-label-md text-primary" id="selection-count">0 of 5 selected</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant" id="selection-hint">Choose 5</span>
+</div>
+<div class="h-3 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-0 bg-primary-container progress-bar-fill shadow-[inset_0_-2px_4px_rgba(0,0,0,0.1)]" id="progress-fill"></div>
+</div>
+</section>
+<!-- Habit Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Habit Card: Drink Water -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">water_drop</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Drink Water</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Stay hydrated</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+<!-- Habit Card: Meditate -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">self_improvement</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Meditate</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Mindfulness practice</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+<!-- Habit Card: Read -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">menu_book</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Read</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">10 pages a day</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+<!-- Habit Card: Exercise -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">fitness_center</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Exercise</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Active movement</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+<!-- Habit Card: Journal -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">edit_note</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Journal</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Reflect on today</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+<!-- Habit Card: Sleep 8 Hours -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">bedtime</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Sleep 8 Hours</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Proper recovery</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+<!-- Habit Card: Healthy Meal -->
+<button class="habit-btn group flex items-center justify-between p-md bg-white rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all duration-300 text-left border-2 border-transparent" onclick="toggleHabit(this)">
+<div class="flex items-center gap-md">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[28px]">restaurant</span>
+</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface leading-tight">Healthy Meal</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Fuel your body</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-0 transition-opacity">check_circle</span>
+</button>
+</div>
+</main>
+<!-- Bottom Actions & Navigation -->
+<footer class="fixed bottom-0 w-full z-50 bg-surface/80 backdrop-blur-xl rounded-t-xl shadow-[0px_-4px_20px_rgba(0,0,0,0.04)]">
+<!-- Continue Button Layer -->
+<div class="px-container-margin py-4 max-w-[768px] mx-auto border-b border-outline-variant/10">
+<button class="w-full h-14 bg-outline text-on-surface/30 font-bold rounded-full pill-shadow transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center gap-xs" disabled="" id="continue-btn">
+                Continue
+                <span class="material-symbols-outlined text-label-md">arrow_forward</span>
+</button>
+</div>
+<!-- Navigation Placeholder Style -->
+<nav class="flex justify-around items-center px-4 py-2 pb-safe max-w-[768px] mx-auto">
+<div class="flex flex-col items-center justify-center text-on-surface-variant group">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="font-label-sm text-label-sm">Today</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant group">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm text-label-sm">Progress</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant group">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</div>
+</nav>
+</footer>
+<script>
+        let selectedCount = 0;
+        const maxSelected = 5;
+        const continueBtn = document.getElementById('continue-btn');
+        const countDisplay = document.getElementById('selection-count');
+        const progressFill = document.getElementById('progress-fill');
+        const hintDisplay = document.getElementById('selection-hint');
+
+        function toggleHabit(element) {
+            const isSelected = element.classList.contains('habit-card-selected');
+            const icon = element.querySelector('.material-symbols-outlined:last-child');
+            
+            if (!isSelected && selectedCount < maxSelected) {
+                // Select
+                element.classList.add('habit-card-selected');
+                element.classList.remove('border-transparent');
+                element.style.borderColor = '#006b5f';
+                icon.classList.remove('opacity-0');
+                icon.style.fontVariationSettings = "'FILL' 1";
+                selectedCount++;
+            } else if (isSelected) {
+                // Deselect
+                element.classList.remove('habit-card-selected');
+                element.classList.add('border-transparent');
+                element.style.borderColor = 'transparent';
+                icon.classList.add('opacity-0');
+                icon.style.fontVariationSettings = "'FILL' 0";
+                selectedCount--;
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            // Update Text
+            countDisplay.innerText = `${selectedCount} of ${maxSelected} selected`;
+            
+            // Update Progress Bar
+            const percentage = (selectedCount / maxSelected) * 100;
+            progressFill.style.width = `${Math.min(percentage, 100)}%`;
+
+            // Update Continue Button
+            if (selectedCount === maxSelected) {
+                continueBtn.disabled = false;
+                continueBtn.classList.remove('bg-outline', 'text-on-surface/30');
+                continueBtn.classList.add('bg-primary-container', 'text-on-primary-container');
+                hintDisplay.innerText = "Ready to start!";
+                hintDisplay.classList.add('text-primary');
+            } else {
+                continueBtn.disabled = true;
+                continueBtn.classList.add('bg-outline', 'text-on-surface/30');
+                continueBtn.classList.remove('bg-primary-container', 'text-on-primary-container');
+                hintDisplay.innerText = selectedCount < maxSelected ? `Select ${maxSelected - selectedCount} more` : "Too many selected";
+                hintDisplay.classList.remove('text-primary');
+            }
+
+            // Visual feedback for over-selection if applicable
+            if (selectedCount > maxSelected) {
+                countDisplay.classList.add('text-error');
+            } else {
+                countDisplay.classList.remove('text-error');
+            }
+        }
+    </script>
+</body></html>

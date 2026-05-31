@@ -16,7 +16,7 @@ export function CompleteBanner({ onViewCertificate }) {
                     <h3>{t(language, 'bannerHeading')}</h3>
                     <p>{t(language, 'bannerText')}</p>
                     <button className="btn-view-cert" onClick={onViewCertificate}>
-                        <span>🪷</span>
+                        <span>✦</span>
                         <span>{t(language, 'viewCertificate')}</span>
                     </button>
                 </div>
