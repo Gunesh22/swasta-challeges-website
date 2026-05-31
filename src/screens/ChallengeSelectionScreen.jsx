@@ -13,7 +13,8 @@ export function ChallengeSelectionScreen() {
         state,
         language,
         toggleLanguage,
-        isDataLoaded
+        isDataLoaded,
+        adminSettings
     } = useChallengeContext();
 
     const navigate = useNavigate();
@@ -24,18 +25,32 @@ export function ChallengeSelectionScreen() {
     }, [availableChallenges]);
 
     const handleSelectChallenge = (challengeId) => {
-        const isSameChallengeWithHabits =
-            state.activeChallengeId === challengeId &&
-            state.selectedHabits?.length > 0;
+        const def = availableChallenges.find(c => c.id === challengeId);
+        const challengeHabits = def?.habits?.length > 0
+            ? def.habits
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
 
-        if (isSameChallengeWithHabits) {
-            // Re-tapping the already-active challenge — just go to dashboard
+        const existing = state.challenges?.[challengeId]?.selectedHabits || [];
+        
+        let hasValidHabits = false;
+        if (challengeHabits.length > 0) {
+            const habitCount = def?.habitCount;
+            const targetHabitCount = habitCount > 0
+                ? Math.min(habitCount, challengeHabits.length)
+                : Math.min(5, challengeHabits.length);
+            hasValidHabits = existing &&
+                existing.length === targetHabitCount &&
+                existing.every(id => challengeHabits.some(h => h.id === id));
+        } else {
+            hasValidHabits = existing && existing.length > 0;
+        }
+
+        if (hasValidHabits) {
+            selectChallenge(challengeId);
             navigate('/dashboard', { replace: true });
             return;
         }
 
-        // Every NEW challenge always gets a fresh habit selection.
-        // selectChallenge sets the ID and clears selectedHabits.
         selectChallenge(challengeId);
         navigate('/library', { state: { fromChallenges: true } });
     };

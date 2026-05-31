@@ -86,9 +86,7 @@ export function useChallenge() {
                                     }
                                 }
                             }
-                            if (remote.activeChallengeId && prev.selectedHabits?.length > 0) {
-                                // Only restore remote activeChallengeId if user hasn't just switched
-                                // (switching clears selectedHabits — if empty locally, keep local choice)
+                            if (remote.activeChallengeId) {
                                 merged.activeChallengeId = remote.activeChallengeId;
                             }
                             // Keep root selectedHabits in sync with active challenge selection
@@ -290,6 +288,12 @@ export function useChallenge() {
                 firestore.joinChallenge(currentUserId, challengeId, actualStartDate, []).catch(() => {
                     enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate, []]);
                 });
+                firestore.updateUserActiveChallenge(currentUserId, challengeId).catch(console.warn);
+            }
+        } else {
+            const currentUserId = state.userId || state.phone || state.email;
+            if (currentUserId) {
+                firestore.updateUserActiveChallenge(currentUserId, challengeId).catch(console.warn);
             }
         }
 
@@ -327,6 +331,7 @@ export function useChallenge() {
         const currentUserId = state.userId || state.phone || state.email;
         if (currentUserId) {
             firestore.updateSelectedHabits(currentUserId, selectedHabits).catch(console.warn);
+            firestore.updateUserActiveChallenge(currentUserId, challengeId).catch(console.warn);
             firestore.joinChallenge(currentUserId, challengeId, actualStartDate, selectedHabits).catch(() => {
                 enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate, selectedHabits]);
             });
@@ -338,12 +343,24 @@ export function useChallenge() {
     // Otherwise, restores existing habits.
     const selectChallenge = useCallback((challengeId) => {
         const def = availableChallenges.find(c => c.id === challengeId);
-        const challengeHabits = def?.habits || [];
+        const challengeHabits = def?.habits?.length > 0
+            ? def.habits
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
 
         const existing = state.challenges?.[challengeId]?.selectedHabits || [];
-        const hasValidHabits = challengeHabits.length === 0
-            ? existing.length > 0
-            : (existing.length > 0 && existing.every(id => challengeHabits.some(h => h.id === id)));
+        
+        let hasValidHabits = false;
+        if (challengeHabits.length > 0) {
+            const habitCount = def?.habitCount;
+            const targetHabitCount = habitCount > 0
+                ? Math.min(habitCount, challengeHabits.length)
+                : Math.min(5, challengeHabits.length);
+            hasValidHabits = existing &&
+                existing.length === targetHabitCount &&
+                existing.every(id => challengeHabits.some(h => h.id === id));
+        } else {
+            hasValidHabits = existing && existing.length > 0;
+        }
 
         const restoredHabits = hasValidHabits ? existing : [];
 
@@ -357,8 +374,9 @@ export function useChallenge() {
         const currentUserId = state.userId || state.phone || state.email;
         if (currentUserId) {
             firestore.updateSelectedHabits(currentUserId, restoredHabits).catch(console.warn);
+            firestore.updateUserActiveChallenge(currentUserId, challengeId).catch(console.warn);
         }
-    }, [state, persist, availableChallenges]);
+    }, [state, persist, availableChallenges, adminSettings]);
 
     // --- Active Challenge Derived Data ---
     const activeChallengeDef = useMemo(() => availableChallenges.find(c => c.id === state.activeChallengeId), [state.activeChallengeId, availableChallenges]);

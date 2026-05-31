@@ -119,6 +119,17 @@ export async function updateSelectedHabits(userId, selectedHabits) {
     });
 }
 
+/**
+ * Update the user's active challenge in their user profile document.
+ */
+export async function updateUserActiveChallenge(userId, activeChallengeId) {
+    return await withRetry(async () => {
+        const docRef = doc(db, USERS, userId);
+        await updateDoc(docRef, { activeChallengeId });
+    });
+}
+
+
 export async function updateChallengeHabits(userId, challengeId, selectedHabits) {
     const docId = `${userId}_${challengeId}`;
     return await withRetry(async () => {
