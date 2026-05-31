@@ -37,7 +37,7 @@ export function WelcomeScreen() {
         };
     }, []);
 
-    const handleSubmit = useCallback((e) => {
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
         setError('');
 
