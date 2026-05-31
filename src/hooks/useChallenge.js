@@ -67,17 +67,6 @@ export function useChallenge() {
                         // Merge remote into state using functional updater to avoid stale data
                         setState(prev => {
                             const merged = { ...prev };
-                            // Only restore remote habits if local hasn't deliberately cleared them
-                            // (i.e. user just switched challenges — don't overwrite the fresh start)
-                            if (remote.selectedHabits && remote.selectedHabits.length > 0 &&
-                                (!Array.isArray(prev.selectedHabits) || prev.selectedHabits.length > 0)) {
-                                merged.selectedHabits = remote.selectedHabits;
-                            }
-                            if (remote.activeChallengeId && prev.selectedHabits?.length > 0) {
-                                // Only restore remote activeChallengeId if user hasn't just switched
-                                // (switching clears selectedHabits — if empty locally, keep local choice)
-                                merged.activeChallengeId = remote.activeChallengeId;
-                            }
                             if (remote.challenges) {
                                 merged.challenges = { ...prev.challenges };
                                 for (const [chId, remoteData] of Object.entries(remote.challenges)) {
@@ -89,12 +78,25 @@ export function useChallenge() {
                                             ...localData,
                                             completedDays: { ...remoteData.completedDays, ...localData.completedDays },
                                             reflections: { ...remoteData.reflections, ...localData.reflections },
-                                            habitCompletions: { ...remoteData.habitCompletions, ...localData.habitCompletions }
+                                            habitCompletions: { ...remoteData.habitCompletions, ...localData.habitCompletions },
+                                            selectedHabits: localData.selectedHabits?.length > 0 ? localData.selectedHabits : (remoteData.selectedHabits || [])
                                         };
                                     } else {
                                         merged.challenges[chId] = remoteData;
                                     }
                                 }
+                            }
+                            if (remote.activeChallengeId && prev.selectedHabits?.length > 0) {
+                                // Only restore remote activeChallengeId if user hasn't just switched
+                                // (switching clears selectedHabits — if empty locally, keep local choice)
+                                merged.activeChallengeId = remote.activeChallengeId;
+                            }
+                            // Keep root selectedHabits in sync with active challenge selection
+                            if (merged.activeChallengeId && merged.challenges[merged.activeChallengeId]) {
+                                merged.selectedHabits = merged.challenges[merged.activeChallengeId].selectedHabits || [];
+                            } else if (remote.selectedHabits && remote.selectedHabits.length > 0 &&
+                                (!Array.isArray(prev.selectedHabits) || prev.selectedHabits.length > 0)) {
+                                merged.selectedHabits = remote.selectedHabits;
                             }
                             saveState(merged);
                             return merged;
@@ -172,7 +174,11 @@ export function useChallenge() {
         const userId = phone && phone.trim() ? phone.replace(/\D/g, '') : email.toLowerCase().trim();
 
         try {
-            const remoteUser = await firestore.registerParticipant({ name, email, phone });
+            // First attempt to load participant details to recover profile if they are a returning user
+            let remoteUser = await firestore.getParticipant(userId);
+            if (!remoteUser) {
+                remoteUser = await firestore.registerParticipant({ name, email, phone });
+            }
             if (remoteUser) {
                 const merged = {
                     ...state,
@@ -183,8 +189,11 @@ export function useChallenge() {
                     phone: remoteUser.phone || phone || '',
                     selectedHabits: remoteUser.selectedHabits || [],
                     activeChallengeId: remoteUser.activeChallengeId || null,
-                    challenges: state.challenges || {}
+                    challenges: remoteUser.challenges || state.challenges || {}
                 };
+                if (merged.activeChallengeId && merged.challenges[merged.activeChallengeId]) {
+                    merged.selectedHabits = merged.challenges[merged.activeChallengeId].selectedHabits || [];
+                }
                 persist(merged);
                 return merged;
             }
@@ -208,11 +217,25 @@ export function useChallenge() {
 
     // --- Update selected habits ---
     const saveSelectedHabits = useCallback(async (selectedHabits) => {
-        const next = { ...state, selectedHabits };
+        const activeId = state.activeChallengeId;
+        if (!activeId) return;
+
+        const next = { 
+            ...state, 
+            selectedHabits,
+            challenges: {
+                ...state.challenges,
+                [activeId]: {
+                    ...(state.challenges[activeId] || {}),
+                    selectedHabits
+                }
+            }
+        };
         persist(next);
         const currentUserId = state.userId || state.phone || state.email;
         if (currentUserId) {
             await firestore.updateSelectedHabits(currentUserId, selectedHabits).catch(console.warn);
+            await firestore.updateChallengeHabits(currentUserId, activeId, selectedHabits).catch(console.warn);
         }
     }, [state, persist]);
 
@@ -234,13 +257,14 @@ export function useChallenge() {
                 startDate: actualStartDate,
                 completedDays: {},
                 reflections: {},
-                habitCompletions: {}
+                habitCompletions: {},
+                selectedHabits: []
             };
 
             const currentUserId = state.userId || state.phone || state.email;
             if (currentUserId) {
-                firestore.joinChallenge(currentUserId, challengeId, actualStartDate).catch(() => {
-                    enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate]);
+                firestore.joinChallenge(currentUserId, challengeId, actualStartDate, []).catch(() => {
+                    enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate, []]);
                 });
             }
         }
@@ -264,43 +288,53 @@ export function useChallenge() {
             activeChallengeId: challengeId 
         };
         if (!next.challenges) next.challenges = {};
-        if (!next.challenges[challengeId]) {
-            next.challenges[challengeId] = {
-                startDate: actualStartDate,
+        next.challenges[challengeId] = {
+            ...(next.challenges[challengeId] || {
                 completedDays: {},
                 reflections: {},
                 habitCompletions: {}
-            };
-        }
+            }),
+            startDate: actualStartDate,
+            selectedHabits
+        };
 
         persist(next);
 
         const currentUserId = state.userId || state.phone || state.email;
         if (currentUserId) {
             firestore.updateSelectedHabits(currentUserId, selectedHabits).catch(console.warn);
-            firestore.joinChallenge(currentUserId, challengeId, actualStartDate).catch(() => {
-                enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate]);
+            firestore.joinChallenge(currentUserId, challengeId, actualStartDate, selectedHabits).catch(() => {
+                enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate, selectedHabits]);
             });
         }
     }, [state, persist, availableChallenges]);
 
     // --- Select Active Challenge ---
-    // Always clears selectedHabits so LibraryScreen prompts a fresh selection
-    // for every challenge. Also clears from Firestore so remote sync can't restore old habits.
+    // Clears selectedHabits ONLY if there are no existing habits for that challenge.
+    // Otherwise, restores existing habits.
     const selectChallenge = useCallback((challengeId) => {
+        const def = availableChallenges.find(c => c.id === challengeId);
+        const challengeHabits = def?.habits || [];
+
+        const existing = state.challenges?.[challengeId]?.selectedHabits || [];
+        const hasValidHabits = challengeHabits.length === 0
+            ? existing.length > 0
+            : (existing.length > 0 && existing.every(id => challengeHabits.some(h => h.id === id)));
+
+        const restoredHabits = hasValidHabits ? existing : [];
+
         const next = {
             ...state,
             activeChallengeId: challengeId,
-            selectedHabits: []  // Clear so user always picks fresh for each challenge
+            selectedHabits: restoredHabits
         };
         persist(next);
 
-        // Clear from Firestore so the remote sync on next load doesn't restore old habits
         const currentUserId = state.userId || state.phone || state.email;
         if (currentUserId) {
-            firestore.updateSelectedHabits(currentUserId, []).catch(console.warn);
+            firestore.updateSelectedHabits(currentUserId, restoredHabits).catch(console.warn);
         }
-    }, [state, persist]);
+    }, [state, persist, availableChallenges]);
 
     // --- Active Challenge Derived Data ---
     const activeChallengeDef = useMemo(() => availableChallenges.find(c => c.id === state.activeChallengeId), [state.activeChallengeId, availableChallenges]);

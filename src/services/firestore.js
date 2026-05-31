@@ -119,7 +119,15 @@ export async function updateSelectedHabits(userId, selectedHabits) {
     });
 }
 
-export async function joinChallenge(userId, challengeId, startDate) {
+export async function updateChallengeHabits(userId, challengeId, selectedHabits) {
+    const docId = `${userId}_${challengeId}`;
+    return await withRetry(async () => {
+        const docRef = doc(db, USER_CHALLENGES, docId);
+        await updateDoc(docRef, { selectedHabits });
+    });
+}
+
+export async function joinChallenge(userId, challengeId, startDate, selectedHabits = []) {
     const docId = `${userId}_${challengeId}`;
 
     return await withRetry(async () => {
@@ -129,10 +137,16 @@ export async function joinChallenge(userId, challengeId, startDate) {
         let joinedData;
         if (snap.exists()) {
             const data = snap.data();
+            const updates = {};
             if (!data.startDate && startDate) {
-                // Patch the document if it was created asynchronously by completeDay without a startDate
-                await updateDoc(docRef, { startDate });
-                data.startDate = startDate;
+                updates.startDate = startDate;
+            }
+            if ((!data.selectedHabits || data.selectedHabits.length === 0) && selectedHabits.length > 0) {
+                updates.selectedHabits = selectedHabits;
+            }
+            if (Object.keys(updates).length > 0) {
+                await updateDoc(docRef, updates);
+                Object.assign(data, updates);
             }
             joinedData = { id: docId, ...data };
         } else {
@@ -143,6 +157,7 @@ export async function joinChallenge(userId, challengeId, startDate) {
                 completedDays: {},
                 reflections: {},
                 habitCompletions: {},
+                selectedHabits,
                 createdAt: serverTimestamp(),
             };
             await setDoc(docRef, newData);
@@ -189,6 +204,7 @@ export async function getParticipant(userId) {
             completedDays: data.completedDays || {},
             reflections: data.reflections || {},
             habitCompletions: data.habitCompletions || {},
+            selectedHabits: data.selectedHabits || [],
         };
     });
 
@@ -264,6 +280,7 @@ export async function syncOfflineChallenges(userId, localChallenges, remoteChall
                     completedDatesArray: Object.keys(localData.completedDays || {}),
                     reflections: localData.reflections || {},
                     habitCompletions: localData.habitCompletions || {},
+                    selectedHabits: localData.selectedHabits || [],
                     createdAt: serverTimestamp(),
                 });
                 hasChanges = true;
@@ -287,13 +304,21 @@ export async function syncOfflineChallenges(userId, localChallenges, remoteChall
                     }
                 }
 
+                const updates = {};
                 if (needsMerge) {
-                    batch.set(docRef, {
-                        completedDays: missingDays,
-                        completedDatesArray: arrayUnion(...Object.keys(missingDays)),
-                        reflections: missingReflections,
-                        habitCompletions: missingHabitCompletions
-                    }, { merge: true });
+                    updates.completedDays = missingDays;
+                    updates.completedDatesArray = arrayUnion(...Object.keys(missingDays));
+                    updates.reflections = missingReflections;
+                    updates.habitCompletions = missingHabitCompletions;
+                }
+
+                // Also merge selectedHabits if they exist locally but not remotely (or mismatch)
+                if (localData.selectedHabits?.length > 0 && (!remoteData.selectedHabits || remoteData.selectedHabits.length === 0)) {
+                    updates.selectedHabits = localData.selectedHabits;
+                }
+
+                if (Object.keys(updates).length > 0) {
+                    batch.set(docRef, updates, { merge: true });
                     hasChanges = true;
                 }
             }
