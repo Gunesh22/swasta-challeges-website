@@ -135,7 +135,6 @@
 /* Days badge — shown inline under title */
 .challenge-duration-badge {
     display: inline-block;
-    margin-top: 3px;
     background: rgba(0, 107, 95, 0.07);
     color: var(--primary);
     font-weight: 600;
@@ -144,6 +143,30 @@
     border-radius: 20px;
     border: 1px solid rgba(0, 107, 95, 0.1);
     font-family: 'Outfit', var(--font-sans);
+    white-space: nowrap;
+}
+
+/* Date badge (cohort start date) */
+.challenge-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    flex-wrap: wrap;
+}
+
+.challenge-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(0, 96, 172, 0.07);
+    color: #0060ac;
+    font-weight: 600;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 96, 172, 0.12);
+    white-space: nowrap;
 }
 
 /* Hide description — not needed on mobile */

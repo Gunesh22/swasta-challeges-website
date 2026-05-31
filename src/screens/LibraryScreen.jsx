@@ -42,23 +42,24 @@ export function LibraryScreen() {
     const isFromLogin = location.state?.fromLogin;
     const isFromChallenges = location.state?.fromChallenges;
 
-    // Sync state.selectedHabits to local selection state
+    // Sync state.selectedHabits to local selection state.
+    // When arriving from challenge selection (isFromChallenges), always start blank
+    // so the user is forced to make an explicit choice.
     useEffect(() => {
+        if (isFromChallenges) return; // Always start with empty selection when picking a new challenge
         if (isDataLoaded && state.selectedHabits) {
-            const hasValidHabits = state.selectedHabits.length === targetHabitCount && 
+            const hasValidHabits = state.selectedHabits.length === targetHabitCount &&
                 state.selectedHabits.every(id => allHabits.some(h => h.id === id));
             if (hasValidHabits) {
                 setSelected([...state.selectedHabits]);
             } else if (allHabits.length <= 5) {
-                // If total available habits is 5 or less, pre-select all of them automatically
                 setSelected(allHabits.map(h => h.id));
             } else {
-                // Let them keep any subset of previously selected habits that are still valid in the new catalog
                 const stillValid = state.selectedHabits.filter(id => allHabits.some(h => h.id === id));
                 setSelected(stillValid);
             }
         }
-    }, [isDataLoaded, state.selectedHabits, targetHabitCount, allHabits]);
+    }, [isDataLoaded, state.selectedHabits, targetHabitCount, allHabits, isFromChallenges]);
 
     // If data loaded and user already has exactly targetHabitCount valid habits selected,
     // and they didn't just come from registration/login OR challenge selection, redirect to dashboard

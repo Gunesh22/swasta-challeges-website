@@ -258,7 +258,18 @@ export function useChallenge() {
 
     // --- Select Active Challenge ---
     const selectChallenge = useCallback((challengeId) => {
-        // Find the challenge definition to get its habit list + required count
+        const existingHabits = state.selectedHabits || [];
+
+        // First-time user (no habits yet) — just record the chosen challenge.
+        // LibraryScreen will handle habit selection.
+        if (existingHabits.length === 0) {
+            persist({ ...state, activeChallengeId: challengeId });
+            return;
+        }
+
+        // Returning user — carry over their habits that still exist in the new challenge,
+        // then fill any remaining slots from the new challenge's habit list so the route
+        // guard never sees an invalid state.
         const challengeDef = availableChallenges.find(c => c.id === challengeId);
         const challengeHabits = challengeDef?.habits || [];
         const requiredCount = Math.min(
@@ -266,25 +277,21 @@ export function useChallenge() {
             challengeHabits.length || 5
         );
 
-        // Carry over any of the user's previously selected habits that still exist in the new challenge.
-        // If not enough overlap, fill remaining slots from the new challenge's habit list.
-        let retained = (state.selectedHabits || []).filter(id => challengeHabits.some(h => h.id === id));
+        let retained = existingHabits.filter(id => challengeHabits.some(h => h.id === id));
         if (retained.length < requiredCount && challengeHabits.length > 0) {
-            const remaining = challengeHabits
+            const fill = challengeHabits
                 .map(h => h.id)
                 .filter(id => !retained.includes(id))
                 .slice(0, requiredCount - retained.length);
-            retained = [...retained, ...remaining];
+            retained = [...retained, ...fill];
         }
         const newSelectedHabits = retained.slice(0, requiredCount);
 
-        // Persist atomically — no route guard will fire because habits are always valid
-        const nextState = {
+        persist({
             ...state,
             activeChallengeId: challengeId,
             ...(newSelectedHabits.length > 0 ? { selectedHabits: newSelectedHabits } : {})
-        };
-        persist(nextState);
+        });
 
         // Sync to Firestore in the background
         const currentUserId = state.userId || state.phone || state.email;

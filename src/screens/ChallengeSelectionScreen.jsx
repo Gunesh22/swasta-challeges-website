@@ -102,12 +102,20 @@ export function ChallengeSelectionScreen() {
                                         <span>{challengeIcon}</span>
                                     </div>
 
-                                    {/* Title + days */}
+                                    {/* Title + days + start date */}
                                     <div className="challenge-card-body">
                                         <div className="challenge-title">{challenge.title}</div>
-                                        <span className="challenge-duration-badge">
-                                            {duration} {language === 'hi' ? 'दिन' : 'Days'}
-                                        </span>
+                                        <div className="challenge-card-meta">
+                                            <span className="challenge-duration-badge">
+                                                {duration} {language === 'hi' ? 'दिन' : 'Days'}
+                                            </span>
+                                            {challenge.startType === 'cohort' && challenge.startDate && (
+                                                <span className="challenge-date-badge">
+                                                    <span className="material-symbols-outlined" style={{ fontSize: '11px', verticalAlign: 'middle' }}>calendar_today</span>
+                                                    {' '}{new Date(challenge.startDate).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short' })}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* CTA */}
