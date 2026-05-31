@@ -67,7 +67,10 @@ export function useChallenge() {
                         // Merge remote into state using functional updater to avoid stale data
                         setState(prev => {
                             const merged = { ...prev };
-                            if (remote.selectedHabits) {
+                            // Only restore remote habits if local hasn't deliberately cleared them
+                            // (i.e. user just switched challenges — don't overwrite the fresh start)
+                            if (remote.selectedHabits && remote.selectedHabits.length > 0 &&
+                                (!Array.isArray(prev.selectedHabits) || prev.selectedHabits.length > 0)) {
                                 merged.selectedHabits = remote.selectedHabits;
                             }
                             if (remote.activeChallengeId) {
@@ -258,14 +261,20 @@ export function useChallenge() {
 
     // --- Select Active Challenge ---
     // Always clears selectedHabits so LibraryScreen prompts a fresh selection
-    // for every challenge. ChallengeSelectionScreen short-circuits to /dashboard
-    // only when re-joining the SAME challenge that already has valid habits.
+    // for every challenge. Also clears from Firestore so remote sync can't restore old habits.
     const selectChallenge = useCallback((challengeId) => {
-        persist({
+        const next = {
             ...state,
             activeChallengeId: challengeId,
             selectedHabits: []  // Clear so user always picks fresh for each challenge
-        });
+        };
+        persist(next);
+
+        // Clear from Firestore so the remote sync on next load doesn't restore old habits
+        const currentUserId = state.userId || state.phone || state.email;
+        if (currentUserId) {
+            firestore.updateSelectedHabits(currentUserId, []).catch(console.warn);
+        }
     }, [state, persist]);
 
     // --- Active Challenge Derived Data ---
