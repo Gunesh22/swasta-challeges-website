@@ -77,11 +77,16 @@ export function WelcomeScreen() {
             try {
                 const registeredUser = await register(firstName.trim(), lastName.trim(), email.trim(), phone.trim());
                 
-                // Check if user already has selected habits. If yes, go to dashboard, else go to selector (library)
-                if (registeredUser?.selectedHabits?.length === 5) {
+                // Navigate based on onboarding progress:
+                // 1. If habits already selected -> Dashboard
+                // 2. If challenge joined but habits not chosen -> Library
+                // 3. Otherwise -> Challenges List
+                if (registeredUser?.selectedHabits?.length > 0) {
                     navigate('/dashboard', { replace: true });
+                } else if (registeredUser?.activeChallengeId) {
+                    navigate('/library', { replace: true });
                 } else {
-                    navigate('/library', { replace: true, state: { fromLogin: true } });
+                    navigate('/challenges', { replace: true });
                 }
             } catch (err) {
                 console.error(err);

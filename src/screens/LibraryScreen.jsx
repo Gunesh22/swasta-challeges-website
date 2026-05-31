@@ -12,6 +12,7 @@ export function LibraryScreen() {
         state,
         saveSelectedHabits,
         joinSpecificChallenge,
+        saveHabitsAndJoinChallenge,
         isDataLoaded,
         adminSettings,
         activeChallengeDef
@@ -27,15 +28,19 @@ export function LibraryScreen() {
         return adminSettings?.habits || HOLISTIC_HABITS;
     }, [activeChallengeDef, adminSettings]);
 
-    // Target count is exactly 5, or total available habits if less than 5
+    // Target count: admin-configured habitCount, else min(5, available)
     const targetHabitCount = useMemo(() => {
+        if (activeChallengeDef?.habitCount && activeChallengeDef.habitCount > 0) {
+            return Math.min(activeChallengeDef.habitCount, allHabits.length);
+        }
         return Math.min(5, allHabits.length);
-    }, [allHabits]);
+    }, [activeChallengeDef, allHabits]);
 
     // Initial selected state from context (if any exist already)
     const [selected, setSelected] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const isFromLogin = location.state?.fromLogin;
+    const isFromChallenges = location.state?.fromChallenges;
 
     // Sync state.selectedHabits to local selection state
     useEffect(() => {
@@ -55,16 +60,17 @@ export function LibraryScreen() {
         }
     }, [isDataLoaded, state.selectedHabits, targetHabitCount, allHabits]);
 
-    // If data loaded and user already has exactly targetHabitCount valid habits selected, and they didn't just come from registration/login, redirect to dashboard
+    // If data loaded and user already has exactly targetHabitCount valid habits selected,
+    // and they didn't just come from registration/login OR challenge selection, redirect to dashboard
     useEffect(() => {
-        if (isDataLoaded && state.selectedHabits && !isFromLogin) {
+        if (isDataLoaded && state.selectedHabits && !isFromLogin && !isFromChallenges && !isSaving) {
             const hasValidHabits = state.selectedHabits.length === targetHabitCount && 
                 state.selectedHabits.every(id => allHabits.some(h => h.id === id));
             if (hasValidHabits) {
                 navigate('/dashboard', { replace: true });
             }
         }
-    }, [isDataLoaded, state.selectedHabits, navigate, isFromLogin, targetHabitCount, allHabits]);
+    }, [isDataLoaded, state.selectedHabits, navigate, isFromLogin, isFromChallenges, targetHabitCount, allHabits, isSaving]);
 
     const handleToggle = useCallback((habitId) => {
         setSelected(prev => {
@@ -85,21 +91,19 @@ export function LibraryScreen() {
         setIsSaving(true);
         
         try {
-            // Save selected habits to local state & firebase
-            await saveSelectedHabits(selected);
+            const challengeId = state.activeChallengeId || 'sampurna_swasthya';
+            // Save selected habits and join the selected challenge atomically
+            await saveHabitsAndJoinChallenge(selected, challengeId);
             
-            // Join the holistic challenge automatically
-            await joinSpecificChallenge('sampurna_swasthya');
-            
-            // Delay navigation slightly to let the user breathe and absorb the transition quotes
+            // Short delay so the save completes before navigating
             setTimeout(() => {
                 navigate('/dashboard', { replace: true });
-            }, 2200);
+            }, 400);
         } catch (err) {
             console.error(err);
             setIsSaving(false);
         }
-    }, [selected, saveSelectedHabits, joinSpecificChallenge, navigate, targetHabitCount]);
+    }, [selected, saveHabitsAndJoinChallenge, navigate, targetHabitCount, state.activeChallengeId]);
 
     if (!isDataLoaded) {
         return (
@@ -114,14 +118,18 @@ export function LibraryScreen() {
 
     if (isSaving) {
         return (
-            <div className="welcome-bg">
-                <div className="welcome-content loading-content">
-                    <div className="lotus-icon spin-slow">🪷</div>
-                    <h2 className="loading-title fade-in">Aligning your chosen practices...</h2>
-                    <p className="loading-subtitle fade-in delay-1">
-                        "Consistency is the path to inner alignment. Please breathe deeply as we build your daily holistic challenge sanctuary."
-                    </p>
-                </div>
+            <div style={{
+                position: 'fixed', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--bg-deep, #f8fafc)'
+            }}>
+                <div style={{
+                    width: 40, height: 40,
+                    border: '4px solid rgba(0,107,95,0.15)',
+                    borderTopColor: 'var(--primary, #006b5f)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.7s linear infinite'
+                }} />
             </div>
         );
     }
@@ -132,9 +140,17 @@ export function LibraryScreen() {
         <div className="habit-selection-bg">
             {/* Top Bar */}
             <header className="selection-header">
+                <button
+                    className="back-btn"
+                    onClick={() => navigate('/challenges')}
+                    aria-label="Back to challenges"
+                >
+                    <span className="material-symbols-outlined">arrow_back</span>
+                </button>
                 <div className="header-brand">
-                    <span className="brand-lotus">🪷</span>
-                    <span className="brand-text">Sampurna Swasthya</span>
+                    <span className="brand-text">
+                        {activeChallengeDef?.title || 'Choose Habits'}
+                    </span>
                 </div>
                 <div className="user-profile-badge">
                     <div className="avatar-circle">
@@ -208,7 +224,9 @@ export function LibraryScreen() {
                         disabled={selected.length !== targetHabitCount}
                         onClick={handleContinue}
                     >
-                        <span>Begin 21-Day Challenge</span>
+                        <span>
+                            Begin {activeChallengeDef ? `${activeChallengeDef.durationDays || activeChallengeDef.totalDays || 21}-Day` : 'Holistic'} Challenge
+                        </span>
                         <span className="material-symbols-outlined">arrow_forward</span>
                     </button>
                 </div>

@@ -34,7 +34,34 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+    justify-content: center;
 }
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-glass);
+    color: var(--text-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.back-btn:hover {
+    background: var(--primary-container);
+    transform: scale(1.08);
+}
+
+.back-btn .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
 
 .brand-lotus {
     font-size: 1.5rem;

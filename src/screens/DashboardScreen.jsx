@@ -30,7 +30,8 @@ export function DashboardScreen() {
         totalDays,
         activeData,
         completeDay,
-        adminSettings
+        adminSettings,
+        isDataLoaded
     } = useChallengeContext();
 
     const navigate = useNavigate();
@@ -126,10 +127,13 @@ export function DashboardScreen() {
         return adminSettings?.habits || HOLISTIC_HABITS;
     }, [activeChallengeDef, adminSettings]);
 
-    // Target count is exactly 5, or total available habits if less than 5
+    // Target count: admin-configured habitCount, else min(5, available)
     const targetHabitCount = useMemo(() => {
+        if (activeChallengeDef?.habitCount && activeChallengeDef.habitCount > 0) {
+            return Math.min(activeChallengeDef.habitCount, allHabits.length);
+        }
         return Math.min(5, allHabits.length);
-    }, [allHabits]);
+    }, [activeChallengeDef, allHabits]);
 
     // Self-healing habit mapping: If the admin changed habits and the seeker's active selection
     // is invalid (contains stale/deleted habits or doesn't match the required target count),
@@ -338,22 +342,33 @@ export function DashboardScreen() {
         }
     }, [resetChallenge, navigate, language]);
 
+    if (!isDataLoaded) {
+        return (
+            <div className="dashboard-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-dark)' }}>
+                <div className="loading-container" style={{ textAlign: 'center', color: '#fff' }}>
+                    <div className="lotus-icon spin" style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🪷</div>
+                    <p style={{ fontFamily: '"Outfit", sans-serif', opacity: 0.8, letterSpacing: '0.5px' }}>
+                        {language === 'hi' ? 'आपके संपूर्ण स्वास्थ्य की तैयारी हो रही है...' : 'Preparing your holistic sanctuary...'}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="dashboard-wrapper">
-            {/* Top Navigation / Brand Header */}
-            <header className="dashboard-appbar">
-                <div className="appbar-brand">
-                    <span className="brand-lotus">🪷</span>
-                    <div className="brand-text">
-                        <h2>Sampurna Swasthya</h2>
-                        <p>Holistic Health Challenge</p>
-                    </div>
-                </div>
-                <div className="appbar-controls">
-                    <button className="lang-toggle-badge" onClick={toggleLanguage}>
-                        {language === 'en' ? 'अ / A' : 'A / अ'}
-                    </button>
-                </div>
+            {/* Top Navigation — back button only */}
+            <header className="dashboard-appbar dashboard-appbar--minimal">
+                <button
+                    className="dash-back-btn"
+                    onClick={() => navigate('/challenges')}
+                    aria-label="Back to challenges"
+                >
+                    <span className="material-symbols-outlined">arrow_back</span>
+                </button>
+                <button className="lang-toggle-badge" onClick={toggleLanguage}>
+                    {language === 'en' ? 'अ / A' : 'A / अ'}
+                </button>
             </header>
 
             {/* Main Visual Tabs Canvas */}
@@ -397,7 +412,11 @@ export function DashboardScreen() {
                                 <div className="celebration-shine" />
                                 <span className="material-symbols-outlined trophy-glow">workspace_premium</span>
                                 <h4>{language === 'hi' ? 'बधाई हो! चुनौती पूरी हुई' : 'Congratulations! Journey Complete'}</h4>
-                                <p>{language === 'hi' ? 'आपने संपूर्ण स्वास्थ्य के सभी २१ दिन सफलतापूर्वक पूरे किए हैं!' : 'You have completed all 21 days of Sampurna Swasthya!'}</p>
+                                <p>
+                                    {language === 'hi' 
+                                        ? `आपने इस यात्रा के सभी ${totalDays} दिन सफलतापूर्वक पूरे किए हैं!` 
+                                        : `You have completed all ${totalDays} days of ${activeChallengeDef?.title || 'Sampurna Swasthya'}!`}
+                                </p>
                                 <button className="btn-get-certificate" onClick={() => setShowCertificate(true)}>
                                     {language === 'hi' ? 'प्रमाणपत्र प्राप्त करें' : 'Claim Completion Certificate'}
                                 </button>
@@ -580,6 +599,13 @@ export function DashboardScreen() {
                                     </div>
                                 )}
                             </div>
+                            <button 
+                                className="btn-logout-dashboard" 
+                                style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #005e53 100%)', color: '#fff', marginBottom: '12px' }} 
+                                onClick={() => navigate('/challenges')}
+                            >
+                                {language === 'hi' ? 'दूसरी चुनौती चुनें' : 'Switch Challenge / Discover Paths'}
+                            </button>
                             <button className="btn-logout-dashboard" onClick={handleLogout}>
                                 {language === 'hi' ? 'लॉग आउट / रीसेट करें' : 'Logout & Reset Platform'}
                             </button>

@@ -1,0 +1,217 @@
+/* ===== Challenge Selection Page CSS ===== */
+
+.challenge-select-bg {
+    min-height: 100dvh;
+    background: radial-gradient(120% 120% at 50% 10%, var(--bg-deep) 40%, rgba(45, 212, 191, 0.05) 80%, rgba(0, 96, 172, 0.03) 120%);
+    color: var(--text-primary);
+    padding-top: 68px; /* Space for fixed appbar */
+    padding-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* App Bar */
+.challenge-select-bg .dashboard-appbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 107, 95, 0.06);
+    z-index: 100;
+}
+
+.challenge-select-content {
+    max-width: 520px;
+    width: 100%;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Hero Title Header */
+.challenge-select-hero {
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+.challenge-select-hero .hero-title {
+    font-size: 1.7rem;
+    font-weight: 800;
+    font-family: 'Outfit', var(--font-sans);
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    letter-spacing: -0.4px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.challenge-select-hero .hero-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Grid — single column on mobile */
+.challenges-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+/* ── Compact single-row card ── */
+.challenge-premium-card {
+    position: relative;
+    background: var(--bg-card);
+    border-radius: 14px;
+    border: 1px solid rgba(0, 107, 95, 0.08);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    overflow: hidden;
+    cursor: default;
+}
+
+/* Top accent line */
+.challenge-premium-card .card-shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+    opacity: 0.7;
+}
+
+.challenge-premium-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 107, 95, 0.1);
+    border-color: rgba(45, 212, 191, 0.35);
+}
+
+/* Left icon — compact */
+.challenge-icon-box {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.15) 0%, rgba(0, 96, 172, 0.08) 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+}
+
+/* Middle text block */
+.challenge-card-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.challenge-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: 'Outfit', var(--font-sans);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+/* Days badge — shown inline under title */
+.challenge-duration-badge {
+    display: inline-block;
+    margin-top: 3px;
+    background: rgba(0, 107, 95, 0.07);
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 2px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 107, 95, 0.1);
+    font-family: 'Outfit', var(--font-sans);
+}
+
+/* Hide description — not needed on mobile */
+.challenge-description {
+    display: none;
+}
+
+/* Hide original card header layout (icon on top) — we restructure inline */
+.challenge-card-header {
+    display: none;
+}
+
+/* Right: join button — pill shape, compact */
+.challenge-card-footer {
+    flex-shrink: 0;
+}
+
+.btn-join-challenge {
+    background: linear-gradient(135deg, var(--primary) 0%, #005e53 100%);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    transition: opacity 0.2s, transform 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 107, 95, 0.18);
+    cursor: pointer;
+}
+
+.btn-join-challenge:hover {
+    opacity: 0.9;
+    transform: scale(1.03);
+}
+
+.btn-join-challenge .btn-arrow {
+    font-size: 1rem;
+    transition: transform 0.25s ease;
+}
+
+.btn-join-challenge:hover .btn-arrow {
+    transform: translateX(3px);
+}
+
+/* Loading spin */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spin { animation: spin 3s linear infinite; display: inline-block; }
+
+/* No challenges */
+.no-challenges-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    background: var(--bg-card);
+    border: 1px dashed var(--border-medium);
+    border-radius: 14px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.icon-alert { font-size: 2.5rem; color: var(--text-muted); }

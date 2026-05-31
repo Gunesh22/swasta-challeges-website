@@ -119,9 +119,6 @@ export async function updateSelectedHabits(userId, selectedHabits) {
     });
 }
 
-/**
- * Join a specific challenge
- */
 export async function joinChallenge(userId, challengeId, startDate) {
     const docId = `${userId}_${challengeId}`;
 
@@ -129,6 +126,7 @@ export async function joinChallenge(userId, challengeId, startDate) {
         const docRef = doc(db, USER_CHALLENGES, docId);
         const snap = await getDoc(docRef);
 
+        let joinedData;
         if (snap.exists()) {
             const data = snap.data();
             if (!data.startDate && startDate) {
@@ -136,20 +134,28 @@ export async function joinChallenge(userId, challengeId, startDate) {
                 await updateDoc(docRef, { startDate });
                 data.startDate = startDate;
             }
-            return { id: docId, ...data };
+            joinedData = { id: docId, ...data };
+        } else {
+            const newData = {
+                userId,
+                challengeId,
+                startDate,
+                completedDays: {},
+                reflections: {},
+                habitCompletions: {},
+                createdAt: serverTimestamp(),
+            };
+            await setDoc(docRef, newData);
+            joinedData = { id: docId, ...newData };
         }
 
-        const newData = {
-            userId,
-            challengeId,
-            startDate,
-            completedDays: {},
-            reflections: {},
-            habitCompletions: {},
-            createdAt: serverTimestamp(),
-        };
-        await setDoc(docRef, newData);
-        return { id: docId, ...newData };
+        // Also update the activeChallengeId in the primary USERS profile document for cross-device syncing
+        const userRef = doc(db, USERS, userId);
+        await updateDoc(userRef, { activeChallengeId: challengeId }).catch(err => {
+            console.warn('[Firestore] Failed to update user activeChallengeId:', err);
+        });
+
+        return joinedData;
     });
 }
 

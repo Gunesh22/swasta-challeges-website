@@ -54,6 +54,38 @@
     border-bottom: 1px solid var(--glass-border);
 }
 
+/* Minimal variant — no brand text, just controls */
+.dashboard-appbar--minimal {
+    padding: 12px 16px;
+    gap: 12px;
+}
+
+.dash-back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.dash-back-btn:hover {
+    background: rgba(45, 212, 191, 0.12);
+    transform: scale(1.08);
+}
+
+.dash-back-btn .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+
+
 .appbar-brand {
     display: flex;
     align-items: center;
