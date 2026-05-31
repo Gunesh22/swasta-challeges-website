@@ -34,11 +34,17 @@ function ProtectedRoute({ children, requireChallenge = false, requireHabits = fa
             return <Navigate to="/challenges" replace />;
         }
 
-        const allHabits = activeChallengeDef?.habits || adminSettings?.habits || [];
-        const targetHabitCount = Math.min(5, allHabits.length);
-        const hasValidHabits = state.selectedHabits && 
-            state.selectedHabits.length === targetHabitCount && 
-            state.selectedHabits.every(id => allHabits.some(h => h.id === id));
+        // Use length-check to avoid treating `[]` as truthy (empty array != no habits)
+        const challengeHabits = activeChallengeDef?.habits?.length > 0
+            ? activeChallengeDef.habits
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
+        const habitCount = activeChallengeDef?.habitCount;
+        const targetHabitCount = habitCount > 0
+            ? Math.min(habitCount, challengeHabits.length || 999)
+            : Math.min(5, challengeHabits.length || 999);
+        const hasValidHabits = state.selectedHabits &&
+            state.selectedHabits.length === targetHabitCount &&
+            (challengeHabits.length === 0 || state.selectedHabits.every(id => challengeHabits.some(h => h.id === id)));
 
         if (!hasValidHabits) {
             return <Navigate to="/library" replace />;
@@ -60,11 +66,17 @@ function PublicRoute({ children }) {
             return <Navigate to="/challenges" replace />;
         }
 
-        const allHabits = activeChallengeDef?.habits || adminSettings?.habits || [];
-        const targetHabitCount = Math.min(5, allHabits.length);
-        const hasValidHabits = state.selectedHabits && 
-            state.selectedHabits.length === targetHabitCount && 
-            state.selectedHabits.every(id => allHabits.some(h => h.id === id));
+        // Use length-check to avoid treating `[]` as truthy
+        const challengeHabits = activeChallengeDef?.habits?.length > 0
+            ? activeChallengeDef.habits
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
+        const habitCount = activeChallengeDef?.habitCount;
+        const targetHabitCount = habitCount > 0
+            ? Math.min(habitCount, challengeHabits.length || 999)
+            : Math.min(5, challengeHabits.length || 999);
+        const hasValidHabits = state.selectedHabits &&
+            state.selectedHabits.length === targetHabitCount &&
+            (challengeHabits.length === 0 || state.selectedHabits.every(id => challengeHabits.some(h => h.id === id)));
 
         if (!hasValidHabits) {
             return <Navigate to="/library" replace />;

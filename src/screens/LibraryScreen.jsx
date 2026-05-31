@@ -46,17 +46,15 @@ export function LibraryScreen() {
     // When arriving from challenge selection (isFromChallenges), always start blank
     // so the user is forced to make an explicit choice.
     useEffect(() => {
-        if (isFromChallenges) return; // Always start with empty selection when picking a new challenge
+        if (isFromChallenges) return;
         if (isDataLoaded && state.selectedHabits) {
             const hasValidHabits = state.selectedHabits.length === targetHabitCount &&
                 state.selectedHabits.every(id => allHabits.some(h => h.id === id));
             if (hasValidHabits) {
                 setSelected([...state.selectedHabits]);
-            } else if (allHabits.length <= 5) {
-                setSelected(allHabits.map(h => h.id));
             } else {
-                const stillValid = state.selectedHabits.filter(id => allHabits.some(h => h.id === id));
-                setSelected(stillValid);
+                // Wrong count or stale habits — always start fresh so user is never locked out
+                setSelected([]);
             }
         }
     }, [isDataLoaded, state.selectedHabits, targetHabitCount, allHabits, isFromChallenges]);
