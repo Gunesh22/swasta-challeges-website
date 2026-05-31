@@ -29,7 +29,8 @@ export function DashboardScreen() {
         activeChallengeDef,
         totalDays,
         activeData,
-        completeDay
+        completeDay,
+        adminSettings
     } = useChallengeContext();
 
     const navigate = useNavigate();
@@ -118,13 +119,40 @@ export function DashboardScreen() {
         }
     }, [selectedDay, activeTab]);
 
-    // Build lists of the user's selected 5 habits
+    const allHabits = useMemo(() => {
+        if (activeChallengeDef?.habits && activeChallengeDef.habits.length > 0) {
+            return activeChallengeDef.habits;
+        }
+        return adminSettings?.habits || HOLISTIC_HABITS;
+    }, [activeChallengeDef, adminSettings]);
+
+    // Target count is exactly 5, or total available habits if less than 5
+    const targetHabitCount = useMemo(() => {
+        return Math.min(5, allHabits.length);
+    }, [allHabits]);
+
+    // Self-healing habit mapping: If the admin changed habits and the seeker's active selection
+    // is invalid (contains stale/deleted habits or doesn't match the required target count),
+    // redirect them to the selection library screen to pick their habits.
+    useEffect(() => {
+        if (isDataLoaded && state.registered && state.activeChallengeId) {
+            const hasValidHabits = state.selectedHabits && 
+                state.selectedHabits.length === targetHabitCount && 
+                state.selectedHabits.every(id => allHabits.some(h => h.id === id));
+            
+            if (!hasValidHabits) {
+                navigate('/library', { replace: true });
+            }
+        }
+    }, [isDataLoaded, state.registered, state.activeChallengeId, state.selectedHabits, targetHabitCount, allHabits, navigate]);
+
+    // Build lists of the user's selected habits
     const selectedHabitsList = useMemo(() => {
         const selectedIds = state.selectedHabits && state.selectedHabits.length > 0
             ? state.selectedHabits
-            : ['water', 'meditate', 'read', 'exercise', 'journal'];
-        return selectedIds.map(id => HOLISTIC_HABITS.find(h => h.id === id)).filter(Boolean);
-    }, [state.selectedHabits]);
+            : [];
+        return selectedIds.map(id => allHabits.find(h => h.id === id)).filter(Boolean);
+    }, [state.selectedHabits, allHabits]);
 
     // Calculate completions for the selected day
     const completedHabitsCount = useMemo(() => {
@@ -132,7 +160,7 @@ export function DashboardScreen() {
         return selectedHabitsList.filter(h => comps[h.id]).length;
     }, [selectedDayData.completions, selectedHabitsList]);
 
-    const completionRate = Math.round((completedHabitsCount / 5) * 100);
+    const completionRate = Math.round((completedHabitsCount / Math.max(1, targetHabitCount)) * 100);
 
     // Toggle a habit check state
     const handleHabitToggle = useCallback((habitId) => {
@@ -227,11 +255,11 @@ export function DashboardScreen() {
         });
 
         // Adherence relative to elapsed days
-        const totalPossible = Math.max(1, currentDay) * 5;
+        const totalPossible = Math.max(1, currentDay) * targetHabitCount;
         const adherence = Math.min(100, Math.round((totalHabitsDone / totalPossible) * 100));
 
         return { totalHabitsDone, adherence };
-    }, [activeData, currentDay, selectedHabitsList]);
+    }, [activeData, currentDay, selectedHabitsList, targetHabitCount]);
 
     // Weekly progress analytics list (last 7 days)
     const weeklyProgressList = useMemo(() => {
@@ -253,13 +281,13 @@ export function DashboardScreen() {
             list.push({
                 dayNum: d,
                 count,
-                percentage: (count / 5) * 100,
+                percentage: (count / Math.max(1, targetHabitCount)) * 100,
                 isToday: d === currentDay,
                 label
             });
         }
         return list;
-    }, [activeData, currentDay, totalDays, selectedHabitsList, language]);
+    }, [activeData, currentDay, totalDays, selectedHabitsList, language, targetHabitCount]);
 
     // Generate full monthly heatmap days (all 21 days)
     const heatmapDays = useMemo(() => {
@@ -393,12 +421,12 @@ export function DashboardScreen() {
                                 </svg>
                                 <div className="ring-inner-text">
                                     <span className="ring-percent">{completionRate}%</span>
-                                    <span className="ring-subtext">{completedHabitsCount} of 5 Done</span>
+                                    <span className="ring-subtext">{completedHabitsCount} of {targetHabitCount} Done</span>
                                 </div>
                             </div>
                             <div className="hero-ring-details">
                                 <h3>{language === 'hi' ? 'आज का संपूर्ण स्वास्थ्य' : "Today's Practices"}</h3>
-                                <p>{language === 'hi' ? 'अपने ५ चुनिंदा आदतों को चिह्नित करें:' : 'Mark the 5 habits you did today:'}</p>
+                                <p>{language === 'hi' ? `अपने ${targetHabitCount} चुनिंदा आदतों को चिह्नित करें:` : `Mark the ${targetHabitCount} habits you did today:`}</p>
                             </div>
                         </div>
 
@@ -480,8 +508,8 @@ export function DashboardScreen() {
                             </div>
                             <div className="weekly-3d-chart-container">
                                 <div className="chart-y-axis">
-                                    <span>5</span>
-                                    <span>3</span>
+                                    <span>{targetHabitCount}</span>
+                                    <span>{Math.round(targetHabitCount / 2)}</span>
                                     <span>0</span>
                                 </div>
                                 <div className="chart-bars-canvas">
@@ -492,7 +520,7 @@ export function DashboardScreen() {
                                                     className={`bar-fill-3d ${day.isToday ? 'bar-fill-today' : ''}`}
                                                     style={{ height: `${day.percentage}%` }}
                                                 >
-                                                    <span className="bar-floating-bubble">{day.count}/5</span>
+                                                    <span className="bar-floating-bubble">{day.count}/{targetHabitCount}</span>
                                                 </div>
                                             </div>
                                             <span className={`bar-axis-label ${day.isToday ? 'label-today' : ''}`}>{day.label}</span>

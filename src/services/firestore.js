@@ -32,7 +32,7 @@ const cache = {
     challenges: { data: null, timestamp: 0 },
     adminSettings: { data: null, timestamp: 0 }
 };
-const CACHE_TTL_MS = 1000 * 60 * 5; // 5 minutes cache
+const CACHE_TTL_MS = 1000 * 30; // 30 seconds cache
 import { db } from './firebase';
 
 const USERS = 'users';

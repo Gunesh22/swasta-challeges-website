@@ -1,7 +1,7 @@
 // ===== LibraryScreen (Habit Selection) =====
-// Onboarding page where the user selects exactly 5 out of 7 habits
+// Onboarding page where the user selects exactly 5 (or less if not enough exist) out of available habits
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useChallengeContext } from '../context/ChallengeContext';
 import { HOLISTIC_HABITS } from '../constants';
@@ -12,43 +12,75 @@ export function LibraryScreen() {
         state,
         saveSelectedHabits,
         joinSpecificChallenge,
-        isDataLoaded
+        isDataLoaded,
+        adminSettings,
+        activeChallengeDef
     } = useChallengeContext();
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Initial selected state from context (if any exist already)
-    const [selected, setSelected] = useState(() => {
-        return state.selectedHabits && state.selectedHabits.length === 5 
-            ? [...state.selectedHabits] 
-            : [];
-    });
+    // Dynamically retrieve habits from current challenge, global settings, or defaults
+    const allHabits = useMemo(() => {
+        if (activeChallengeDef?.habits && activeChallengeDef.habits.length > 0) {
+            return activeChallengeDef.habits;
+        }
+        return adminSettings?.habits || HOLISTIC_HABITS;
+    }, [activeChallengeDef, adminSettings]);
 
+    // Target count is exactly 5, or total available habits if less than 5
+    const targetHabitCount = useMemo(() => {
+        return Math.min(5, allHabits.length);
+    }, [allHabits]);
+
+    // Initial selected state from context (if any exist already)
+    const [selected, setSelected] = useState([]);
     const [isSaving, setIsSaving] = useState(false);
     const isFromLogin = location.state?.fromLogin;
 
-    // If data loaded and user already has exactly 5 habits selected, and they didn't just come from registration/login, redirect to dashboard
+    // Sync state.selectedHabits to local selection state
     useEffect(() => {
-        if (isDataLoaded && state.selectedHabits?.length === 5 && !isFromLogin) {
-            navigate('/dashboard', { replace: true });
+        if (isDataLoaded && state.selectedHabits) {
+            const hasValidHabits = state.selectedHabits.length === targetHabitCount && 
+                state.selectedHabits.every(id => allHabits.some(h => h.id === id));
+            if (hasValidHabits) {
+                setSelected([...state.selectedHabits]);
+            } else if (allHabits.length <= 5) {
+                // If total available habits is 5 or less, pre-select all of them automatically
+                setSelected(allHabits.map(h => h.id));
+            } else {
+                // Let them keep any subset of previously selected habits that are still valid in the new catalog
+                const stillValid = state.selectedHabits.filter(id => allHabits.some(h => h.id === id));
+                setSelected(stillValid);
+            }
         }
-    }, [isDataLoaded, state.selectedHabits, navigate, isFromLogin]);
+    }, [isDataLoaded, state.selectedHabits, targetHabitCount, allHabits]);
+
+    // If data loaded and user already has exactly targetHabitCount valid habits selected, and they didn't just come from registration/login, redirect to dashboard
+    useEffect(() => {
+        if (isDataLoaded && state.selectedHabits && !isFromLogin) {
+            const hasValidHabits = state.selectedHabits.length === targetHabitCount && 
+                state.selectedHabits.every(id => allHabits.some(h => h.id === id));
+            if (hasValidHabits) {
+                navigate('/dashboard', { replace: true });
+            }
+        }
+    }, [isDataLoaded, state.selectedHabits, navigate, isFromLogin, targetHabitCount, allHabits]);
 
     const handleToggle = useCallback((habitId) => {
         setSelected(prev => {
             if (prev.includes(habitId)) {
                 return prev.filter(id => id !== habitId);
             } else {
-                if (prev.length >= 5) {
-                    return prev; // Max 5 allowed
+                if (prev.length >= targetHabitCount) {
+                    return prev; // Max allowed reached
                 }
                 return [...prev, habitId];
             }
         });
-    }, []);
+    }, [targetHabitCount]);
 
     const handleContinue = useCallback(async () => {
-        if (selected.length !== 5) return;
+        if (selected.length !== targetHabitCount) return;
         
         setIsSaving(true);
         
@@ -67,7 +99,7 @@ export function LibraryScreen() {
             console.error(err);
             setIsSaving(false);
         }
-    }, [selected, saveSelectedHabits, joinSpecificChallenge, navigate]);
+    }, [selected, saveSelectedHabits, joinSpecificChallenge, navigate, targetHabitCount]);
 
     if (!isDataLoaded) {
         return (
@@ -94,7 +126,7 @@ export function LibraryScreen() {
         );
     }
 
-    const progressPercent = Math.min((selected.length / 5) * 100, 100);
+    const progressPercent = targetHabitCount > 0 ? Math.min((selected.length / targetHabitCount) * 100, 100) : 100;
 
     return (
         <div className="habit-selection-bg">
@@ -114,20 +146,20 @@ export function LibraryScreen() {
             <main className="selection-main">
                 {/* Intro Title */}
                 <section className="selection-intro">
-                    <h2 className="intro-title">Choose Your Core 5</h2>
+                    <h2 className="intro-title">Choose Your Core {targetHabitCount}</h2>
                     <p className="intro-subtitle">
-                        Select exactly 5 habits to anchor your daily routine. Sustainable growth starts with consistency.
+                        Select exactly {targetHabitCount} daily habits to anchor your routine. Sustainable growth starts with consistency.
                     </p>
                 </section>
 
                 {/* Progress Bar Track */}
                 <section className="progress-sticky">
                     <div className="progress-label-row">
-                        <span className={`progress-count ${selected.length === 5 ? 'success-count' : ''}`}>
-                            {selected.length} of 5 selected
+                        <span className={`progress-count ${selected.length === targetHabitCount ? 'success-count' : ''}`}>
+                            {selected.length} of {targetHabitCount} selected
                         </span>
-                        <span className={`progress-hint ${selected.length === 5 ? 'success-hint' : ''}`}>
-                            {selected.length === 5 ? 'Perfect selection!' : `Choose ${5 - selected.length} more`}
+                        <span className={`progress-hint ${selected.length === targetHabitCount ? 'success-hint' : ''}`}>
+                            {selected.length === targetHabitCount ? 'Perfect selection!' : `Choose ${targetHabitCount - selected.length} more`}
                         </span>
                     </div>
                     <div className="progress-track">
@@ -137,9 +169,9 @@ export function LibraryScreen() {
 
                 {/* Habit Grid */}
                 <div className="habit-grid">
-                    {HOLISTIC_HABITS.map((habit) => {
+                    {allHabits.map((habit) => {
                         const isSelected = selected.includes(habit.id);
-                        const isDisabled = !isSelected && selected.length >= 5;
+                        const isDisabled = !isSelected && selected.length >= targetHabitCount;
 
                         return (
                             <button
@@ -173,7 +205,7 @@ export function LibraryScreen() {
                 <div className="footer-container">
                     <button
                         className="continue-button"
-                        disabled={selected.length !== 5}
+                        disabled={selected.length !== targetHabitCount}
                         onClick={handleContinue}
                     >
                         <span>Begin 21-Day Challenge</span>
