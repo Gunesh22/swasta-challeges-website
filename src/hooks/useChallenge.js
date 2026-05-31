@@ -92,8 +92,21 @@ export function useChallenge() {
                                 merged.activeChallengeId = remote.activeChallengeId;
                             }
                             // Keep root selectedHabits in sync with active challenge selection
-                            if (merged.activeChallengeId && merged.challenges[merged.activeChallengeId]) {
-                                merged.selectedHabits = merged.challenges[merged.activeChallengeId].selectedHabits || [];
+                            if (merged.activeChallengeId) {
+                                if (!merged.challenges) merged.challenges = {};
+                                if (!merged.challenges[merged.activeChallengeId]) {
+                                    merged.challenges[merged.activeChallengeId] = {};
+                                }
+                                const challengeHabits = merged.challenges[merged.activeChallengeId].selectedHabits;
+                                if (challengeHabits && challengeHabits.length > 0) {
+                                    merged.selectedHabits = challengeHabits;
+                                } else {
+                                    const fallbackHabits = (remote.selectedHabits && remote.selectedHabits.length > 0)
+                                        ? remote.selectedHabits
+                                        : (prev.selectedHabits || []);
+                                    merged.challenges[merged.activeChallengeId].selectedHabits = fallbackHabits;
+                                    merged.selectedHabits = fallbackHabits;
+                                }
                             } else if (remote.selectedHabits && remote.selectedHabits.length > 0 &&
                                 (!Array.isArray(prev.selectedHabits) || prev.selectedHabits.length > 0)) {
                                 merged.selectedHabits = remote.selectedHabits;
@@ -191,8 +204,19 @@ export function useChallenge() {
                     activeChallengeId: remoteUser.activeChallengeId || null,
                     challenges: remoteUser.challenges || state.challenges || {}
                 };
-                if (merged.activeChallengeId && merged.challenges[merged.activeChallengeId]) {
-                    merged.selectedHabits = merged.challenges[merged.activeChallengeId].selectedHabits || [];
+                if (merged.activeChallengeId) {
+                    if (!merged.challenges) merged.challenges = {};
+                    if (!merged.challenges[merged.activeChallengeId]) {
+                        merged.challenges[merged.activeChallengeId] = {};
+                    }
+                    const challengeHabits = merged.challenges[merged.activeChallengeId].selectedHabits;
+                    if (challengeHabits && challengeHabits.length > 0) {
+                        merged.selectedHabits = challengeHabits;
+                    } else {
+                        const fallbackHabits = remoteUser.selectedHabits || state.selectedHabits || [];
+                        merged.challenges[merged.activeChallengeId].selectedHabits = fallbackHabits;
+                        merged.selectedHabits = fallbackHabits;
+                    }
                 }
                 persist(merged);
                 return merged;
