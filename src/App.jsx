@@ -38,13 +38,20 @@ function ProtectedRoute({ children, requireChallenge = false, requireHabits = fa
         const challengeHabits = activeChallengeDef?.habits?.length > 0
             ? activeChallengeDef.habits
             : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
-        const habitCount = activeChallengeDef?.habitCount;
-        const targetHabitCount = habitCount > 0
-            ? Math.min(habitCount, challengeHabits.length || 999)
-            : Math.min(5, challengeHabits.length || 999);
-        const hasValidHabits = state.selectedHabits &&
-            state.selectedHabits.length === targetHabitCount &&
-            (challengeHabits.length === 0 || state.selectedHabits.every(id => challengeHabits.some(h => h.id === id)));
+
+        let hasValidHabits;
+        if (challengeHabits.length === 0) {
+            // Challenge has no specific habits — any existing selection is valid
+            hasValidHabits = state.selectedHabits && state.selectedHabits.length > 0;
+        } else {
+            const habitCount = activeChallengeDef?.habitCount;
+            const targetHabitCount = habitCount > 0
+                ? Math.min(habitCount, challengeHabits.length)
+                : Math.min(5, challengeHabits.length);
+            hasValidHabits = state.selectedHabits &&
+                state.selectedHabits.length === targetHabitCount &&
+                state.selectedHabits.every(id => challengeHabits.some(h => h.id === id));
+        }
 
         if (!hasValidHabits) {
             return <Navigate to="/library" replace />;
@@ -70,13 +77,19 @@ function PublicRoute({ children }) {
         const challengeHabits = activeChallengeDef?.habits?.length > 0
             ? activeChallengeDef.habits
             : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
-        const habitCount = activeChallengeDef?.habitCount;
-        const targetHabitCount = habitCount > 0
-            ? Math.min(habitCount, challengeHabits.length || 999)
-            : Math.min(5, challengeHabits.length || 999);
-        const hasValidHabits = state.selectedHabits &&
-            state.selectedHabits.length === targetHabitCount &&
-            (challengeHabits.length === 0 || state.selectedHabits.every(id => challengeHabits.some(h => h.id === id)));
+
+        let hasValidHabits;
+        if (challengeHabits.length === 0) {
+            hasValidHabits = state.selectedHabits && state.selectedHabits.length > 0;
+        } else {
+            const habitCount = activeChallengeDef?.habitCount;
+            const targetHabitCount = habitCount > 0
+                ? Math.min(habitCount, challengeHabits.length)
+                : Math.min(5, challengeHabits.length);
+            hasValidHabits = state.selectedHabits &&
+                state.selectedHabits.length === targetHabitCount &&
+                state.selectedHabits.every(id => challengeHabits.some(h => h.id === id));
+        }
 
         if (!hasValidHabits) {
             return <Navigate to="/library" replace />;

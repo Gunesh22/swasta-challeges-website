@@ -272,13 +272,21 @@ export function useChallenge() {
         // guard never sees an invalid state.
         const challengeDef = availableChallenges.find(c => c.id === challengeId);
         const challengeHabits = challengeDef?.habits || [];
+
+        // If the new challenge has no habits configured, keep the user's existing
+        // habits as-is and simply switch the active challenge ID.
+        if (challengeHabits.length === 0) {
+            persist({ ...state, activeChallengeId: challengeId });
+            return;
+        }
+
         const requiredCount = Math.min(
             challengeDef?.habitCount || 5,
-            challengeHabits.length || 5
+            challengeHabits.length
         );
 
         let retained = existingHabits.filter(id => challengeHabits.some(h => h.id === id));
-        if (retained.length < requiredCount && challengeHabits.length > 0) {
+        if (retained.length < requiredCount) {
             const fill = challengeHabits
                 .map(h => h.id)
                 .filter(id => !retained.includes(id))
@@ -290,12 +298,12 @@ export function useChallenge() {
         persist({
             ...state,
             activeChallengeId: challengeId,
-            ...(newSelectedHabits.length > 0 ? { selectedHabits: newSelectedHabits } : {})
+            selectedHabits: newSelectedHabits
         });
 
         // Sync to Firestore in the background
         const currentUserId = state.userId || state.phone || state.email;
-        if (currentUserId && newSelectedHabits.length > 0) {
+        if (currentUserId) {
             firestore.updateSelectedHabits(currentUserId, newSelectedHabits).catch(console.warn);
         }
     }, [state, persist, availableChallenges]);
