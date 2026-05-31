@@ -31,7 +31,8 @@ export function DashboardScreen() {
         activeData,
         completeDay,
         adminSettings,
-        isDataLoaded
+        isDataLoaded,
+        streak
     } = useChallengeContext();
 
     const navigate = useNavigate();
@@ -76,7 +77,7 @@ export function DashboardScreen() {
         if (!state.registered) {
             navigate('/', { replace: true });
         } else if (!state.activeChallengeId) {
-            navigate('/library', { replace: true });
+            navigate('/challenges', { replace: true }); // Must choose a challenge first
         }
     }, [state.registered, state.activeChallengeId, navigate]);
 
@@ -135,20 +136,29 @@ export function DashboardScreen() {
         return Math.min(5, allHabits.length);
     }, [activeChallengeDef, allHabits]);
 
-    // Self-healing habit mapping: If the admin changed habits and the seeker's active selection
-    // is invalid (contains stale/deleted habits or doesn't match the required target count),
-    // redirect them to the selection library screen to pick their habits.
+    // Self-healing: if the admin changed habits or habitCount, redirect to library.
+    // Handles the no-habit challenge case (challengeHabits.length === 0) specially.
     useEffect(() => {
         if (isDataLoaded && state.registered && state.activeChallengeId) {
-            const hasValidHabits = state.selectedHabits && 
-                state.selectedHabits.length === targetHabitCount && 
-                state.selectedHabits.every(id => allHabits.some(h => h.id === id));
-            
+            const challengeHabits = activeChallengeDef?.habits?.length > 0
+                ? activeChallengeDef.habits
+                : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
+
+            let hasValidHabits;
+            if (challengeHabits.length === 0) {
+                // No specific habits configured — any non-empty selection is fine
+                hasValidHabits = state.selectedHabits && state.selectedHabits.length > 0;
+            } else {
+                hasValidHabits = state.selectedHabits &&
+                    state.selectedHabits.length === targetHabitCount &&
+                    state.selectedHabits.every(id => allHabits.some(h => h.id === id));
+            }
+
             if (!hasValidHabits) {
                 navigate('/library', { replace: true });
             }
         }
-    }, [isDataLoaded, state.registered, state.activeChallengeId, state.selectedHabits, targetHabitCount, allHabits, navigate]);
+    }, [isDataLoaded, state.registered, state.activeChallengeId, state.selectedHabits, targetHabitCount, allHabits, activeChallengeDef, adminSettings, navigate]);
 
     // Build lists of the user's selected habits
     const selectedHabitsList = useMemo(() => {
@@ -293,10 +303,10 @@ export function DashboardScreen() {
         return list;
     }, [activeData, currentDay, totalDays, selectedHabitsList, language, targetHabitCount]);
 
-    // Generate full monthly heatmap days (all 21 days)
+    // Generate full heatmap for all challenge days (uses actual totalDays, not hardcoded 21)
     const heatmapDays = useMemo(() => {
         const list = [];
-        for (let d = 1; d <= 21; d++) {
+        for (let d = 1; d <= totalDays; d++) {
             const dateISO = activeData?.startDate ? getDateForDay(activeData.startDate, d) : null;
             const dayComps = dateISO ? (activeData?.habitCompletions?.[dateISO] || {}) : {};
             const count = selectedHabitsList.filter(h => dayComps[h.id]).length;
@@ -311,7 +321,7 @@ export function DashboardScreen() {
             });
         }
         return list;
-    }, [activeData, currentDay, selectedHabitsList]);
+    }, [activeData, currentDay, selectedHabitsList, totalDays]);
 
     // Habit individual breakdowns
     const habitStatsBreakdown = useMemo(() => {
@@ -491,7 +501,7 @@ export function DashboardScreen() {
                                 <div className="stat-icon-wrapper orange-glow">
                                     <span className="material-symbols-outlined text-orange">local_fire_department</span>
                                 </div>
-                                <span className="stat-value">{useChallengeContext().streak.streak || 0} Days</span>
+                                <span className="stat-value">{streak?.streak || 0} Days</span>
                                 <span className="stat-label">{language === 'hi' ? 'वर्तमान निरंतरता' : 'Current Streak'}</span>
                             </div>
                             <div className="bento-stat-card border-glow-emerald">
@@ -512,7 +522,7 @@ export function DashboardScreen() {
                                     </div>
                                     <div className="divider-vert" />
                                     <div>
-                                        <span className="stat-value">{useChallengeContext().streak.bestStreak || 0} Days</span>
+                                        <span className="stat-value">{streak?.bestStreak || 0} Days</span>
                                         <span className="stat-label">{language === 'hi' ? 'सर्वश्रेष्ठ रिकॉर्ड' : 'Longest Streak'}</span>
                                     </div>
                                 </div>

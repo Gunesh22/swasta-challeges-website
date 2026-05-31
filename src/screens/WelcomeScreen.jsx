@@ -72,25 +72,18 @@ export function WelcomeScreen() {
 
         setIsRegistering(true);
 
-        // Calming preparation transition
-        timeoutRef.current = setTimeout(async () => {
-            try {
-                const registeredUser = await register(firstName.trim(), lastName.trim(), email.trim(), phone.trim());
-                
-                // Navigate based on onboarding progress:
-                // - Has habits → Dashboard (returning user)
-                // - No habits → Challenges list (must pick challenge first, then habits)
-                if (registeredUser?.selectedHabits?.length > 0) {
-                    navigate('/dashboard', { replace: true });
-                } else {
-                    navigate('/challenges', { replace: true });
-                }
-            } catch (err) {
-                console.error(err);
-                setIsRegistering(false);
-                setError(err.message || 'An error occurred during registration. Please check your network and try again.');
+        try {
+            const registeredUser = await register(firstName.trim(), lastName.trim(), email.trim(), phone.trim());
+            if (registeredUser?.selectedHabits?.length > 0) {
+                navigate('/dashboard', { replace: true });
+            } else {
+                navigate('/challenges', { replace: true });
             }
-        }, 2200);
+        } catch (err) {
+            console.error(err);
+            setIsRegistering(false);
+            setError(err.message || 'An error occurred during registration. Please check your network and try again.');
+        }
     }, [firstName, lastName, email, phone, register, navigate]);
 
     if (isRegistering) {

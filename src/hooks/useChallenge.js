@@ -257,56 +257,16 @@ export function useChallenge() {
     }, [state, persist, availableChallenges]);
 
     // --- Select Active Challenge ---
+    // Always clears selectedHabits so LibraryScreen prompts a fresh selection
+    // for every challenge. ChallengeSelectionScreen short-circuits to /dashboard
+    // only when re-joining the SAME challenge that already has valid habits.
     const selectChallenge = useCallback((challengeId) => {
-        const existingHabits = state.selectedHabits || [];
-
-        // First-time user (no habits yet) — just record the chosen challenge.
-        // LibraryScreen will handle habit selection.
-        if (existingHabits.length === 0) {
-            persist({ ...state, activeChallengeId: challengeId });
-            return;
-        }
-
-        // Returning user — carry over their habits that still exist in the new challenge,
-        // then fill any remaining slots from the new challenge's habit list so the route
-        // guard never sees an invalid state.
-        const challengeDef = availableChallenges.find(c => c.id === challengeId);
-        const challengeHabits = challengeDef?.habits || [];
-
-        // If the new challenge has no habits configured, keep the user's existing
-        // habits as-is and simply switch the active challenge ID.
-        if (challengeHabits.length === 0) {
-            persist({ ...state, activeChallengeId: challengeId });
-            return;
-        }
-
-        const requiredCount = Math.min(
-            challengeDef?.habitCount || 5,
-            challengeHabits.length
-        );
-
-        let retained = existingHabits.filter(id => challengeHabits.some(h => h.id === id));
-        if (retained.length < requiredCount) {
-            const fill = challengeHabits
-                .map(h => h.id)
-                .filter(id => !retained.includes(id))
-                .slice(0, requiredCount - retained.length);
-            retained = [...retained, ...fill];
-        }
-        const newSelectedHabits = retained.slice(0, requiredCount);
-
         persist({
             ...state,
             activeChallengeId: challengeId,
-            selectedHabits: newSelectedHabits
+            selectedHabits: []  // Clear so user always picks fresh for each challenge
         });
-
-        // Sync to Firestore in the background
-        const currentUserId = state.userId || state.phone || state.email;
-        if (currentUserId) {
-            firestore.updateSelectedHabits(currentUserId, newSelectedHabits).catch(console.warn);
-        }
-    }, [state, persist, availableChallenges]);
+    }, [state, persist]);
 
     // --- Active Challenge Derived Data ---
     const activeChallengeDef = useMemo(() => availableChallenges.find(c => c.id === state.activeChallengeId), [state.activeChallengeId, availableChallenges]);

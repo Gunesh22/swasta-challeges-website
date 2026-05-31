@@ -24,17 +24,20 @@ export function ChallengeSelectionScreen() {
     }, [availableChallenges]);
 
     const handleSelectChallenge = (challengeId) => {
-        selectChallenge(challengeId);
+        const isSameChallengeWithHabits =
+            state.activeChallengeId === challengeId &&
+            state.selectedHabits?.length > 0;
 
-        // If user already has habits selected, skip habit selection and go straight to dashboard.
-        // The route guard in App.jsx will redirect to /library automatically if those habits
-        // turn out to be invalid for the new challenge.
-        if (state.selectedHabits && state.selectedHabits.length > 0) {
+        if (isSameChallengeWithHabits) {
+            // Re-tapping the already-active challenge — just go to dashboard
             navigate('/dashboard', { replace: true });
-        } else {
-            // First-time user — must pick habits
-            navigate('/library', { state: { fromChallenges: true } });
+            return;
         }
+
+        // Every NEW challenge always gets a fresh habit selection.
+        // selectChallenge sets the ID and clears selectedHabits.
+        selectChallenge(challengeId);
+        navigate('/library', { state: { fromChallenges: true } });
     };
 
     if (!isDataLoaded) {
