@@ -48,7 +48,7 @@ export function LibraryScreen() {
     useEffect(() => {
         if (isFromChallenges) return;
         if (isDataLoaded && state.selectedHabits) {
-            const hasValidHabits = state.selectedHabits.length === targetHabitCount &&
+            const hasValidHabits = state.selectedHabits.length >= targetHabitCount &&
                 state.selectedHabits.every(id => allHabits.some(h => h.id === id));
             if (hasValidHabits) {
                 setSelected([...state.selectedHabits]);
@@ -63,7 +63,7 @@ export function LibraryScreen() {
     // and they didn't just come from registration/login OR challenge selection, redirect to dashboard
     useEffect(() => {
         if (isDataLoaded && state.selectedHabits && !isFromLogin && !isFromChallenges && !isSaving) {
-            const hasValidHabits = state.selectedHabits.length === targetHabitCount && 
+            const hasValidHabits = state.selectedHabits.length >= targetHabitCount && 
                 state.selectedHabits.every(id => allHabits.some(h => h.id === id));
             if (hasValidHabits) {
                 navigate('/dashboard', { replace: true });
@@ -76,16 +76,13 @@ export function LibraryScreen() {
             if (prev.includes(habitId)) {
                 return prev.filter(id => id !== habitId);
             } else {
-                if (prev.length >= targetHabitCount) {
-                    return prev; // Max allowed reached
-                }
                 return [...prev, habitId];
             }
         });
-    }, [targetHabitCount]);
+    }, []);
 
     const handleContinue = useCallback(async () => {
-        if (selected.length !== targetHabitCount) return;
+        if (selected.length < targetHabitCount) return;
         
         setIsSaving(true);
         
@@ -161,20 +158,20 @@ export function LibraryScreen() {
             <main className="selection-main">
                 {/* Intro Title */}
                 <section className="selection-intro">
-                    <h2 className="intro-title">Choose Your Core {targetHabitCount}</h2>
+                    <h2 className="intro-title">Choose Your Core Habits</h2>
                     <p className="intro-subtitle">
-                        Select exactly {targetHabitCount} daily habits to anchor your routine. Sustainable growth starts with consistency.
+                        Select at least {targetHabitCount} daily habits to anchor your routine. Sustainable growth starts with consistency.
                     </p>
                 </section>
 
                 {/* Progress Bar Track */}
                 <section className="progress-sticky">
                     <div className="progress-label-row">
-                        <span className={`progress-count ${selected.length === targetHabitCount ? 'success-count' : ''}`}>
-                            {selected.length} of {targetHabitCount} selected
+                        <span className={`progress-count ${selected.length >= targetHabitCount ? 'success-count' : ''}`}>
+                            {selected.length} selected (Min {targetHabitCount})
                         </span>
-                        <span className={`progress-hint ${selected.length === targetHabitCount ? 'success-hint' : ''}`}>
-                            {selected.length === targetHabitCount ? 'Perfect selection!' : `Choose ${targetHabitCount - selected.length} more`}
+                        <span className={`progress-hint ${selected.length >= targetHabitCount ? 'success-hint' : ''}`}>
+                            {selected.length >= targetHabitCount ? 'Perfect selection!' : `Choose ${targetHabitCount - selected.length} more`}
                         </span>
                     </div>
                     <div className="progress-track">
@@ -186,7 +183,7 @@ export function LibraryScreen() {
                 <div className="habit-grid">
                     {allHabits.map((habit) => {
                         const isSelected = selected.includes(habit.id);
-                        const isDisabled = !isSelected && selected.length >= targetHabitCount;
+                        const isDisabled = false;
 
                         return (
                             <button
@@ -220,7 +217,7 @@ export function LibraryScreen() {
                 <div className="footer-container">
                     <button
                         className="continue-button"
-                        disabled={selected.length !== targetHabitCount}
+                        disabled={selected.length < targetHabitCount}
                         onClick={handleContinue}
                     >
                         <span>

@@ -49,7 +49,7 @@ function ProtectedRoute({ children, requireChallenge = false, requireHabits = fa
                 ? Math.min(habitCount, challengeHabits.length)
                 : Math.min(5, challengeHabits.length);
             hasValidHabits = state.selectedHabits &&
-                state.selectedHabits.length === targetHabitCount &&
+                state.selectedHabits.length >= targetHabitCount &&
                 state.selectedHabits.every(id => challengeHabits.some(h => h.id === id));
         }
 
@@ -87,7 +87,7 @@ function PublicRoute({ children }) {
                 ? Math.min(habitCount, challengeHabits.length)
                 : Math.min(5, challengeHabits.length);
             hasValidHabits = state.selectedHabits &&
-                state.selectedHabits.length === targetHabitCount &&
+                state.selectedHabits.length >= targetHabitCount &&
                 state.selectedHabits.every(id => challengeHabits.some(h => h.id === id));
         }
 

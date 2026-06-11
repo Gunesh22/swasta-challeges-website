@@ -150,7 +150,7 @@ export function DashboardScreen() {
                 hasValidHabits = state.selectedHabits && state.selectedHabits.length > 0;
             } else {
                 hasValidHabits = state.selectedHabits &&
-                    state.selectedHabits.length === targetHabitCount &&
+                    state.selectedHabits.length >= targetHabitCount &&
                     state.selectedHabits.every(id => allHabits.some(h => h.id === id));
             }
 
@@ -174,7 +174,7 @@ export function DashboardScreen() {
         return selectedHabitsList.filter(h => comps[h.id]).length;
     }, [selectedDayData.completions, selectedHabitsList]);
 
-    const completionRate = Math.round((completedHabitsCount / Math.max(1, targetHabitCount)) * 100);
+    const completionRate = Math.round((completedHabitsCount / Math.max(1, selectedHabitsList.length)) * 100);
 
     // Toggle a habit check state
     const handleHabitToggle = useCallback((habitId) => {
@@ -269,7 +269,7 @@ export function DashboardScreen() {
         });
 
         // Adherence relative to elapsed days
-        const totalPossible = Math.max(1, currentDay) * targetHabitCount;
+        const totalPossible = Math.max(1, currentDay) * selectedHabitsList.length;
         const adherence = Math.min(100, Math.round((totalHabitsDone / totalPossible) * 100));
 
         return { totalHabitsDone, adherence };
@@ -295,7 +295,7 @@ export function DashboardScreen() {
             list.push({
                 dayNum: d,
                 count,
-                percentage: (count / Math.max(1, targetHabitCount)) * 100,
+                percentage: (count / Math.max(1, selectedHabitsList.length)) * 100,
                 isToday: d === currentDay,
                 label
             });
@@ -450,12 +450,12 @@ export function DashboardScreen() {
                                 </svg>
                                 <div className="ring-inner-text">
                                     <span className="ring-percent">{completionRate}%</span>
-                                    <span className="ring-subtext">{completedHabitsCount} of {targetHabitCount} Done</span>
+                                    <span className="ring-subtext">{completedHabitsCount} of {selectedHabitsList.length} Done</span>
                                 </div>
                             </div>
                             <div className="hero-ring-details">
                                 <h3>{language === 'hi' ? 'आज का संपूर्ण स्वास्थ्य' : "Today's Practices"}</h3>
-                                <p>{language === 'hi' ? `अपने ${targetHabitCount} चुनिंदा आदतों को चिह्नित करें:` : `Mark the ${targetHabitCount} habits you did today:`}</p>
+                                <p>{language === 'hi' ? `अपनी चुनिंदा ${selectedHabitsList.length} आदतों को चिह्नित करें:` : `Mark the ${selectedHabitsList.length} habits you did today:`}</p>
                             </div>
                         </div>
 
@@ -537,8 +537,8 @@ export function DashboardScreen() {
                             </div>
                             <div className="weekly-3d-chart-container">
                                 <div className="chart-y-axis">
-                                    <span>{targetHabitCount}</span>
-                                    <span>{Math.round(targetHabitCount / 2)}</span>
+                                    <span>{selectedHabitsList.length}</span>
+                                    <span>{Math.round(selectedHabitsList.length / 2)}</span>
                                     <span>0</span>
                                 </div>
                                 <div className="chart-bars-canvas">
@@ -549,7 +549,7 @@ export function DashboardScreen() {
                                                     className={`bar-fill-3d ${day.isToday ? 'bar-fill-today' : ''}`}
                                                     style={{ height: `${day.percentage}%` }}
                                                 >
-                                                    <span className="bar-floating-bubble">{day.count}/{targetHabitCount}</span>
+                                                    <span className="bar-floating-bubble">{day.count}/{selectedHabitsList.length}</span>
                                                 </div>
                                             </div>
                                             <span className={`bar-axis-label ${day.isToday ? 'label-today' : ''}`}>{day.label}</span>

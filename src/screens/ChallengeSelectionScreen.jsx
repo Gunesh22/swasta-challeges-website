@@ -39,7 +39,7 @@ export function ChallengeSelectionScreen() {
                 ? Math.min(habitCount, challengeHabits.length)
                 : Math.min(5, challengeHabits.length);
             hasValidHabits = existing &&
-                existing.length === targetHabitCount &&
+                existing.length >= targetHabitCount &&
                 existing.every(id => challengeHabits.some(h => h.id === id));
         } else {
             hasValidHabits = existing && existing.length > 0;
