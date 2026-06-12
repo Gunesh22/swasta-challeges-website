@@ -73,6 +73,6 @@ export const INITIAL_STATE = {
     selectedHabits: [], // Array of 5 habit IDs selected by the user
 
     // Multi-Challenge Progress
-    activeChallengeId: null, // 'sampurna_swasthya'
-    challenges: {}, // { 'sampurna_swasthya': { startDate, completedDays, Reflections, habitCompletions } }
+    activeChallengeId: null,
+    challenges: {},
 };

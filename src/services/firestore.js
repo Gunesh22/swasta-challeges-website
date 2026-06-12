@@ -60,27 +60,6 @@ async function withRetry(fn) {
     }
 }
 
-/**
- * Ensure the default Sampurna Swasthya challenge document exists.
- */
-export async function ensureHolisticChallengeExists() {
-    return await withRetry(async () => {
-        const docRef = doc(db, CHALLENGES, 'sampurna_swasthya');
-        const snap = await getDoc(docRef);
-        if (!snap.exists()) {
-            await setDoc(docRef, {
-                title: 'Sampurna Swasthya - Holistic Health',
-                durationDays: 21,
-                isActive: true,
-                createdAt: serverTimestamp(),
-                icon: '🪷',
-                description: 'Holistic health habit formation challenge. Track 5 selected daily habits.',
-                startType: 'rolling'
-            });
-        }
-    });
-}
-
 // ============ USER & CHALLENGE OPERATIONS ============
 
 /**

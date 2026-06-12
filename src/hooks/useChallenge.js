@@ -18,9 +18,6 @@ export function useChallenge() {
 
         (async () => {
             try {
-                // 0. Ensure default Sampurna Swasthya challenge exists in the database
-                await firestore.ensureHolisticChallengeExists().catch(console.warn);
-
                 // 1. Fetch Admin Constants (Challenges + Quotes)
                 const [challenges, settings] = await Promise.all([
                     firestore.fetchChallenges(),

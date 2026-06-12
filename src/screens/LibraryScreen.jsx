@@ -15,7 +15,8 @@ export function LibraryScreen() {
         saveHabitsAndJoinChallenge,
         isDataLoaded,
         adminSettings,
-        activeChallengeDef
+        activeChallengeDef,
+        availableChallenges
     } = useChallengeContext();
     const navigate = useNavigate();
     const location = useLocation();
@@ -87,7 +88,7 @@ export function LibraryScreen() {
         setIsSaving(true);
         
         try {
-            const challengeId = state.activeChallengeId || 'sampurna_swasthya';
+            const challengeId = state.activeChallengeId || (availableChallenges && availableChallenges[0]?.id) || '11_day_intro';
             // Save selected habits and join the selected challenge atomically
             await saveHabitsAndJoinChallenge(selected, challengeId);
             

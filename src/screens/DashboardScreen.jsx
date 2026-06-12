@@ -425,7 +425,7 @@ export function DashboardScreen() {
                                 <p>
                                     {language === 'hi' 
                                         ? `आपने इस यात्रा के सभी ${totalDays} दिन सफलतापूर्वक पूरे किए हैं!` 
-                                        : `You have completed all ${totalDays} days of ${activeChallengeDef?.title || 'Sampurna Swasthya'}!`}
+                                        : `You have completed all ${totalDays} days of ${activeChallengeDef?.title || 'your challenge'}!`}
                                 </p>
                                 <button className="btn-get-certificate" onClick={() => setShowCertificate(true)}>
                                     {language === 'hi' ? 'प्रमाणपत्र प्राप्त करें' : 'Claim Completion Certificate'}
