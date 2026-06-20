@@ -28,7 +28,12 @@ import {
 
 // ============ IN-MEMORY CACHE ============
 const cache = {
-    communityCounts: { daily: null, total: null, timestamp: 0 },
+    communityCounts: {
+        daily: null,
+        dailyTimestamp: 0,
+        total: null,
+        totalTimestamp: 0
+    },
     challenges: { data: null, timestamp: 0 },
     adminSettings: { data: null, timestamp: 0 }
 };
@@ -327,7 +332,7 @@ export async function syncOfflineChallenges(userId, localChallenges, remoteChall
 export async function countCompletedToday(dateISO) {
     const now = Date.now();
     // Cache daily count heavily (especially helpful on dashboard re-renders)
-    if (cache.communityCounts.daily !== null && (now - cache.communityCounts.timestamp < CACHE_TTL_MS)) {
+    if (cache.communityCounts.daily !== null && (now - cache.communityCounts.dailyTimestamp < CACHE_TTL_MS)) {
         return cache.communityCounts.daily;
     }
 
@@ -339,7 +344,7 @@ export async function countCompletedToday(dateISO) {
         const snapshot = await getCountFromServer(q);
         const count = snapshot.data().count;
         cache.communityCounts.daily = count;
-        cache.communityCounts.timestamp = now;
+        cache.communityCounts.dailyTimestamp = now;
         return count;
     } catch {
         return cache.communityCounts.daily || 0;
@@ -348,7 +353,7 @@ export async function countCompletedToday(dateISO) {
 
 export async function getTotalParticipants() {
     const now = Date.now();
-    if (cache.communityCounts.total !== null && (now - cache.communityCounts.timestamp < CACHE_TTL_MS)) {
+    if (cache.communityCounts.total !== null && (now - cache.communityCounts.totalTimestamp < CACHE_TTL_MS)) {
         return cache.communityCounts.total;
     }
 
@@ -356,7 +361,7 @@ export async function getTotalParticipants() {
         const snapshot = await getCountFromServer(collection(db, USERS));
         const count = snapshot.data().count;
         cache.communityCounts.total = count;
-        cache.communityCounts.timestamp = now;
+        cache.communityCounts.totalTimestamp = now;
         return count;
     } catch {
         return cache.communityCounts.total || 0;
