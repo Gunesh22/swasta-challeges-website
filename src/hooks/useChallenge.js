@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { AVAILABLE_CHALLENGES, INITIAL_STATE } from '../constants';
+import { AVAILABLE_CHALLENGES, INITIAL_STATE, HOLISTIC_HABITS } from '../constants';
 import { loadState, saveState, clearState, loadPendingSyncs, enqueueSync, dequeueSyncs, clearPendingSyncs } from '../utils/storage';
 import { getTodayISO, getCurrentDay, getDateForDay } from '../utils/dateHelpers';
 import * as firestore from '../services/firestore';
@@ -268,8 +268,22 @@ export function useChallenge() {
             actualStartDate = def.startDate;
         }
 
+        const challengeHabits = def?.habits?.length > 0
+            ? def.habits
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : HOLISTIC_HABITS);
+
+        const habitCount = def?.habitCount;
+        const targetHabitCount = habitCount > 0
+            ? Math.min(habitCount, challengeHabits.length)
+            : Math.min(5, challengeHabits.length);
+
+        let selectedHabits = [];
+        if (challengeHabits.length > 0 && targetHabitCount === challengeHabits.length) {
+            selectedHabits = challengeHabits.map(h => h.id);
+        }
+
         // Local immediately
-        const next = { ...state, activeChallengeId: challengeId };
+        const next = { ...state, activeChallengeId: challengeId, selectedHabits };
         if (!next.challenges) next.challenges = {};
         if (!next.challenges[challengeId]) {
             next.challenges[challengeId] = {
@@ -277,15 +291,18 @@ export function useChallenge() {
                 completedDays: {},
                 reflections: {},
                 habitCompletions: {},
-                selectedHabits: []
+                selectedHabits
             };
 
             const currentUserId = state.userId || state.phone || state.email;
             if (currentUserId) {
-                firestore.joinChallenge(currentUserId, challengeId, actualStartDate, []).catch(() => {
-                    enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate, []]);
+                firestore.joinChallenge(currentUserId, challengeId, actualStartDate, selectedHabits).catch(() => {
+                    enqueueSync('joinChallenge', [currentUserId, challengeId, actualStartDate, selectedHabits]);
                 });
                 firestore.updateUserActiveChallenge(currentUserId, challengeId).catch(console.warn);
+                if (selectedHabits.length > 0) {
+                    firestore.updateSelectedHabits(currentUserId, selectedHabits).catch(console.warn);
+                }
             }
         } else {
             const currentUserId = state.userId || state.phone || state.email;
@@ -295,7 +312,7 @@ export function useChallenge() {
         }
 
         persist(next);
-    }, [state, persist, availableChallenges]);
+    }, [state, persist, availableChallenges, adminSettings]);
 
     // --- Save Habits and Join Challenge atomically ---
     const saveHabitsAndJoinChallenge = useCallback(async (selectedHabits, challengeId) => {
@@ -342,16 +359,17 @@ export function useChallenge() {
         const def = availableChallenges.find(c => c.id === challengeId);
         const challengeHabits = def?.habits?.length > 0
             ? def.habits
-            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : HOLISTIC_HABITS);
 
         const existing = state.challenges?.[challengeId]?.selectedHabits || [];
         
         let hasValidHabits = false;
+        const habitCount = def?.habitCount;
+        const targetHabitCount = habitCount > 0
+            ? Math.min(habitCount, challengeHabits.length)
+            : Math.min(5, challengeHabits.length);
+
         if (challengeHabits.length > 0) {
-            const habitCount = def?.habitCount;
-            const targetHabitCount = habitCount > 0
-                ? Math.min(habitCount, challengeHabits.length)
-                : Math.min(5, challengeHabits.length);
             hasValidHabits = existing &&
                 existing.length >= targetHabitCount &&
                 existing.every(id => challengeHabits.some(h => h.id === id));
@@ -359,7 +377,12 @@ export function useChallenge() {
             hasValidHabits = existing && existing.length > 0;
         }
 
-        const restoredHabits = hasValidHabits ? existing : [];
+        let restoredHabits = [];
+        if (challengeHabits.length > 0 && targetHabitCount === challengeHabits.length) {
+            restoredHabits = challengeHabits.map(h => h.id);
+        } else if (hasValidHabits) {
+            restoredHabits = existing;
+        }
 
         const next = {
             ...state,

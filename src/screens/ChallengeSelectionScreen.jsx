@@ -4,12 +4,14 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChallengeContext } from '../context/ChallengeContext';
+import { HOLISTIC_HABITS } from '../constants';
 import './ChallengeSelectionScreen.css';
 
 export function ChallengeSelectionScreen() {
     const {
         availableChallenges,
         selectChallenge,
+        saveHabitsAndJoinChallenge,
         state,
         language,
         toggleLanguage,
@@ -24,20 +26,21 @@ export function ChallengeSelectionScreen() {
         return (availableChallenges || []).filter(c => c.isActive !== false);
     }, [availableChallenges]);
 
-    const handleSelectChallenge = (challengeId) => {
+    const handleSelectChallenge = async (challengeId) => {
         const def = availableChallenges.find(c => c.id === challengeId);
         const challengeHabits = def?.habits?.length > 0
             ? def.habits
-            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : []);
+            : (adminSettings?.habits?.length > 0 ? adminSettings.habits : HOLISTIC_HABITS);
 
         const existing = state.challenges?.[challengeId]?.selectedHabits || [];
         
         let hasValidHabits = false;
+        const habitCount = def?.habitCount;
+        const targetHabitCount = habitCount > 0
+            ? Math.min(habitCount, challengeHabits.length)
+            : Math.min(5, challengeHabits.length);
+
         if (challengeHabits.length > 0) {
-            const habitCount = def?.habitCount;
-            const targetHabitCount = habitCount > 0
-                ? Math.min(habitCount, challengeHabits.length)
-                : Math.min(5, challengeHabits.length);
             hasValidHabits = existing &&
                 existing.length >= targetHabitCount &&
                 existing.every(id => challengeHabits.some(h => h.id === id));
@@ -48,6 +51,19 @@ export function ChallengeSelectionScreen() {
         if (hasValidHabits) {
             selectChallenge(challengeId);
             navigate('/dashboard', { replace: true });
+            return;
+        }
+
+        // If the number of minimum habits is equal to the total number of habits,
+        // automatically select all habits and start/join the challenge without showing selection screen
+        if (challengeHabits.length > 0 && targetHabitCount === challengeHabits.length) {
+            const allHabitIds = challengeHabits.map(h => h.id);
+            try {
+                await saveHabitsAndJoinChallenge(allHabitIds, challengeId);
+                navigate('/dashboard', { replace: true });
+            } catch (err) {
+                console.error("Error auto-starting challenge:", err);
+            }
             return;
         }
 

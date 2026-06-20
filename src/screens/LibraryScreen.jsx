@@ -72,6 +72,26 @@ export function LibraryScreen() {
         }
     }, [isDataLoaded, state.selectedHabits, navigate, isFromLogin, isFromChallenges, targetHabitCount, allHabits, isSaving]);
 
+    // If target count is equal to the total habits, automatically select all habits and start/join challenge
+    useEffect(() => {
+        if (isDataLoaded && targetHabitCount === allHabits.length && allHabits.length > 0 && !isSaving) {
+            setIsSaving(true);
+            const allHabitIds = allHabits.map(h => h.id);
+            const challengeId = state.activeChallengeId || (availableChallenges && availableChallenges[0]?.id) || '11_day_intro';
+            
+            saveHabitsAndJoinChallenge(allHabitIds, challengeId)
+                .then(() => {
+                    setTimeout(() => {
+                        navigate('/dashboard', { replace: true });
+                    }, 400);
+                })
+                .catch(err => {
+                    console.error("Error auto-starting challenge in LibraryScreen:", err);
+                    setIsSaving(false);
+                });
+        }
+    }, [isDataLoaded, targetHabitCount, allHabits, state.activeChallengeId, availableChallenges, saveHabitsAndJoinChallenge, navigate, isSaving]);
+
     const handleToggle = useCallback((habitId) => {
         setSelected(prev => {
             if (prev.includes(habitId)) {
