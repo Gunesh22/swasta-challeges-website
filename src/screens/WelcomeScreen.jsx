@@ -115,7 +115,7 @@ export function WelcomeScreen() {
 
                 {/* Uplifting Quote */}
                 <div className="welcome-quote fade-in delay-1">
-                    <p>"Transform your daily habits, transform your life."</p>
+                    <p>"Everything is a game of beliefs, Understanding is the whole thing"</p>
                     <span>— Sirshree</span>
                 </div>
 
@@ -185,12 +185,6 @@ export function WelcomeScreen() {
                         Begin Your Journey
                     </Button>
                 </form>
-
-                {/* Seekers Count */}
-                <div className="community-badge fade-in delay-3">
-                    <div className="pulse-dot" />
-                    <span>{communityCount > 0 ? communityCount.toLocaleString() : '1,500+'} souls taking the pledge</span>
-                </div>
             </div>
         </div>
     );
