@@ -424,6 +424,19 @@ export function useChallenge() {
 
     const isDayAllowed = useCallback((dayNum) => {
         if (!activeData) return false;
+
+        // Open all days only for user 0000011111
+        const currentUserId = state.userId || state.phone || state.email;
+        const currentEmail = state.email || '';
+        const currentName = state.name || '';
+        if (
+            currentUserId === '0000011111' || 
+            currentEmail.toLowerCase() === 'f@gmail.com' ||
+            currentName.toLowerCase() === 'testf testl'
+        ) {
+            return dayNum >= 1 && dayNum <= totalDays;
+        }
+
         if (isChallengeComplete || isChallengeFailed) return false;
         // The effective "head" day — within grace period, cap at totalDays
         const effectiveCurrent = Math.min(rawCurrentDay, totalDays);
@@ -432,7 +445,7 @@ export function useChallenge() {
         if (dayNum < effectiveCurrent - MAX_PAST_DAYS_ALLOWED) return false; // too far in the past
         if (dayNum < 1) return false;
         return true;
-    }, [activeData, totalDays, rawCurrentDay, isChallengeComplete, isChallengeFailed]);
+    }, [activeData, totalDays, rawCurrentDay, isChallengeComplete, isChallengeFailed, state.userId, state.phone, state.email, state.name]);
 
     // --- Complete a day ---
     const completeDay = useCallback(async (dayNum, feeling, thought, habitCompletions = null) => {
@@ -447,7 +460,11 @@ export function useChallenge() {
         const challengeId = state.activeChallengeId;
         const currentChallenge = state.challenges[challengeId];
 
-        const isAnyCompleted = habitCompletions ? Object.values(habitCompletions).some(Boolean) : true;
+        const selectedHabits = currentChallenge.selectedHabits || state.selectedHabits || [];
+        const activeCompletions = habitCompletions || (currentChallenge.habitCompletions && currentChallenge.habitCompletions[dateForDay]) || {};
+        const isAllCompleted = selectedHabits.length > 0
+            ? selectedHabits.every(id => activeCompletions[id] === true)
+            : false;
 
         const next = {
             ...state,
@@ -457,7 +474,7 @@ export function useChallenge() {
                     ...currentChallenge,
                     completedDays: {
                         ...(currentChallenge.completedDays || {}),
-                        [dateForDay]: isAnyCompleted,
+                        [dateForDay]: isAllCompleted,
                     },
                     reflections: {
                         ...(currentChallenge.reflections || {}),
@@ -475,8 +492,8 @@ export function useChallenge() {
 
         const currentUserId = state.userId || state.phone || state.email;
         if (currentUserId) {
-            firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAnyCompleted).catch(() => {
-                enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAnyCompleted]);
+            firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted).catch(() => {
+                enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted]);
             });
         }
     }, [state, activeData, persist, isDayAllowed]);
