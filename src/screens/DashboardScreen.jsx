@@ -695,7 +695,7 @@ export function DashboardScreen() {
             {isSaving && (
                 <div className="saving-overlay">
                     <div className="saving-card">
-                        <svg className="lotus-loader-svg" viewBox="0 0 100 100" width="100" height="100">
+                        <svg className="lotus-loader-svg" viewBox="0 0 100 100" width="70" height="70">
                             <defs>
                                 <linearGradient id="lotusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stopColor="var(--primary-container)" />
@@ -735,7 +735,7 @@ export function DashboardScreen() {
                                 dismissSavingLoader();
                             }}
                             disabled={isPreparingCertificate}
-                            style={{ width: '100%', marginTop: '20px', maxWidth: '320px', alignSelf: 'center' }}
+                            style={{ width: '100%', marginTop: '12px', maxWidth: '320px', alignSelf: 'center' }}
                         >
                             {isPreparingCertificate ? (
                                 <>

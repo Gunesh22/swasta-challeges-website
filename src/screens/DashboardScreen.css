@@ -1388,9 +1388,9 @@
         0 30px 70px rgba(0, 56, 49, 0.06), 
         0 10px 20px rgba(0, 0, 0, 0.01),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
-    border-radius: 32px;
-    padding: 48px 36px;
-    max-width: 450px;
+    border-radius: 24px;
+    padding: 30px 28px;
+    max-width: 390px;
     width: 90%;
     text-align: center;
     display: flex;
@@ -1416,7 +1416,7 @@
 .lotus-loader-svg {
     filter: drop-shadow(0 0 16px rgba(45, 212, 191, 0.4));
     animation: lotusRotate 16s linear infinite;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
 }
 
 .lotus-center-glow {
@@ -1454,10 +1454,10 @@
 }
 
 .saving-title {
-    font-size: 1.65rem;
+    font-size: 1.45rem;
     font-weight: 800;
     color: var(--text-primary);
-    margin: 0 0 14px 0;
+    margin: 0 0 10px 0;
     letter-spacing: -0.5px;
     background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary) 70%, var(--secondary) 100%);
     -webkit-background-clip: text;
@@ -1466,10 +1466,10 @@
 }
 
 .saving-subtitle {
-    font-size: 0.98rem;
+    font-size: 0.92rem;
     color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0 0 28px 0;
+    line-height: 1.5;
+    margin: 0 0 18px 0;
     font-family: 'Outfit', sans-serif;
     font-weight: 400;
 }
@@ -1477,28 +1477,28 @@
 .saving-quote-box {
     background: rgba(0, 107, 95, 0.03);
     border: 1px solid rgba(0, 107, 95, 0.06);
-    border-radius: 20px;
-    padding: 20px 24px;
+    border-radius: 16px;
+    padding: 14px 20px;
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin: 8px 0 24px 0;
+    gap: 6px;
+    margin: 4px 0 16px 0;
     position: relative;
 }
 
 .saving-quote {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-style: italic;
     color: var(--primary);
     margin: 0;
     opacity: 0.95;
-    line-height: 1.5;
+    line-height: 1.4;
     font-family: 'Outfit', sans-serif;
 }
 
 .saving-author {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--secondary);
     font-weight: 600;
     text-transform: uppercase;
@@ -1507,15 +1507,15 @@
 
 /* Return to dashboard secondary styling */
 .btn-loader-back {
-    margin-top: 14px;
+    margin-top: 10px;
     background: transparent;
     border: 1px solid transparent;
     color: var(--text-muted);
     font-family: 'Outfit', sans-serif;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     font-weight: 500;
-    padding: 8px 16px;
-    border-radius: 16px;
+    padding: 6px 12px;
+    border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
