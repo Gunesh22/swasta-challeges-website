@@ -32,7 +32,10 @@ export function DashboardScreen() {
         completeDay,
         adminSettings,
         isDataLoaded,
-        streak
+        streak,
+        isSaving,
+        isPreparingCertificate,
+        dismissSavingLoader
     } = useChallengeContext();
 
     const navigate = useNavigate();
@@ -427,8 +430,19 @@ export function DashboardScreen() {
                                         ? `आपने इस यात्रा के सभी ${totalDays} दिन सफलतापूर्वक पूरे किए हैं!` 
                                         : `You have completed all ${totalDays} days of ${activeChallengeDef?.title || 'your challenge'}!`}
                                 </p>
-                                <button className="btn-get-certificate" onClick={() => setShowCertificate(true)}>
-                                    {language === 'hi' ? 'प्रमाणपत्र प्राप्त करें' : 'Claim Completion Certificate'}
+                                <button 
+                                    className={`btn-get-certificate ${isPreparingCertificate ? 'btn-preparing' : ''}`} 
+                                    onClick={() => setShowCertificate(true)}
+                                    disabled={isPreparingCertificate}
+                                >
+                                    {isPreparingCertificate ? (
+                                        <>
+                                            <span className="button-spinner" />
+                                            {language === 'hi' ? 'प्रमाणपत्र तैयार किया जा रहा है...' : 'Preparing Certificate...'}
+                                        </>
+                                    ) : (
+                                        language === 'hi' ? 'प्रमाणपत्र प्राप्त करें' : 'Claim Completion Certificate'
+                                    )}
                                 </button>
                             </div>
                         )}
@@ -671,9 +685,72 @@ export function DashboardScreen() {
             {toast.show && (
                 <div className={`toast-notification toast-${toast.type} animate-slide-up`}>
                     <span className="material-symbols-outlined toast-icon">
-                        {toast.type === 'success' ? 'check_circle' : 'info'}
+                         {toast.type === 'success' ? 'check_circle' : 'info'}
                     </span>
                     <span className="toast-message">{toast.message}</span>
+                </div>
+            )}
+
+            {/* Premium Loader Overlay */}
+            {isSaving && (
+                <div className="saving-overlay">
+                    <div className="saving-card">
+                        <svg className="lotus-loader-svg" viewBox="0 0 100 100" width="100" height="100">
+                            <defs>
+                                <linearGradient id="lotusGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="var(--primary-container)" />
+                                    <stop offset="100%" stopColor="var(--primary)" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="10" className="lotus-center-glow" fill="url(#lotusGrad)" />
+                            <path d="M 50 20 C 40 35 40 45 50 50 C 60 45 60 35 50 20 Z" className="lotus-petal petal-top" fill="url(#lotusGrad)" />
+                            <path d="M 50 80 C 40 65 40 55 50 50 C 60 55 60 65 50 80 Z" className="lotus-petal petal-bottom" fill="url(#lotusGrad)" />
+                            <path d="M 20 50 C 35 40 45 40 50 50 C 45 60 35 60 20 50 Z" className="lotus-petal petal-left" fill="url(#lotusGrad)" />
+                            <path d="M 80 50 C 65 40 55 40 50 50 C 55 60 65 60 80 50 Z" className="lotus-petal petal-right" fill="url(#lotusGrad)" />
+                            <path d="M 28 28 C 40 30 45 40 50 50 C 40 45 30 40 28 28 Z" className="lotus-petal petal-diag1" fill="url(#lotusGrad)" opacity="0.8" />
+                            <path d="M 72 28 C 60 30 55 40 50 50 C 60 45 70 40 72 28 Z" className="lotus-petal petal-diag2" fill="url(#lotusGrad)" opacity="0.8" />
+                            <path d="M 28 72 C 40 70 45 60 50 50 C 40 55 30 60 28 72 Z" className="lotus-petal petal-diag3" fill="url(#lotusGrad)" opacity="0.8" />
+                            <path d="M 72 72 C 60 70 55 60 50 50 C 60 55 70 60 72 72 Z" className="lotus-petal petal-diag4" fill="url(#lotusGrad)" opacity="0.8" />
+                        </svg>
+                        <h2 className="saving-title">
+                            {language === 'hi' ? 'आपकी साधना की सिद्धि...' : 'Honoring Your Dedication...'}
+                        </h2>
+                        <p className="saving-subtitle">
+                            {language === 'hi'
+                                ? 'आपके गहरे संकल्प ने आपको यहाँ पहुँचाया है। आपका कल्याण प्रमाणपत्र तैयार किया जा रहा है...'
+                                : 'Your pure intention and consistency have brought you here. Preparing your Certificate of Completion...'}
+                        </p>
+                        <div className="saving-quote-box">
+                            <p className="saving-quote">
+                                {language === 'hi'
+                                    ? '"समझ ही सब कुछ है।"'
+                                    : '"Understanding is the whole thing."'}
+                            </p>
+                            <span className="saving-author">— Sirshree</span>
+                        </div>
+                        <button 
+                            className={`btn-get-certificate ${isPreparingCertificate ? 'btn-preparing' : ''}`} 
+                            onClick={() => {
+                                setShowCertificate(true);
+                                dismissSavingLoader();
+                            }}
+                            disabled={isPreparingCertificate}
+                            style={{ width: '100%', marginTop: '20px', maxWidth: '320px', alignSelf: 'center' }}
+                        >
+                            {isPreparingCertificate ? (
+                                <>
+                                    <span className="button-spinner" />
+                                    {language === 'hi' ? 'प्रमाणपत्र तैयार किया जा रहा है...' : 'Preparing Certificate...'}
+                                </>
+                            ) : (
+                                language === 'hi' ? 'प्रमाणपत्र प्राप्त करें' : 'Claim Completion Certificate'
+                            )}
+                        </button>
+                        <button className="btn-loader-back" onClick={dismissSavingLoader}>
+                            <span className="material-symbols-outlined">arrow_back</span>
+                            {language === 'hi' ? 'डैशबोर्ड पर लौटें' : 'Return to Dashboard'}
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

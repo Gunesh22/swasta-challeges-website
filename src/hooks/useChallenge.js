@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { AVAILABLE_CHALLENGES, INITIAL_STATE, HOLISTIC_HABITS } from '../constants';
 import { loadState, saveState, clearState, loadPendingSyncs, enqueueSync, dequeueSyncs, clearPendingSyncs } from '../utils/storage';
 import { getTodayISO, getCurrentDay, getDateForDay } from '../utils/dateHelpers';
@@ -9,6 +9,13 @@ export function useChallenge() {
     const [availableChallenges, setAvailableChallenges] = useState(AVAILABLE_CHALLENGES);
     const [adminSettings, setAdminSettings] = useState(null);
     const [isDataLoaded, setIsDataLoaded] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isPreparingCertificate, setIsPreparingCertificate] = useState(false);
+    const debounceTimeoutRef = useRef(null);
+
+    const dismissSavingLoader = useCallback(() => {
+        setIsSaving(false);
+    }, []);
 
     const userKey = state.userId || state.phone || state.email;
 
@@ -488,15 +495,53 @@ export function useChallenge() {
             }
         };
 
+        // Always update local state immediately for instant UI response
         persist(next);
 
+        // Smart Detection: Check if this completes the entire challenge
+        const completedDaysObj = currentChallenge.completedDays || {};
+        const completedOtherDaysCount = Object.keys(completedDaysObj).filter(date => date !== dateForDay && completedDaysObj[date] === true).length;
+        const isFinalCompletionClick = isAllCompleted && (completedOtherDaysCount === (totalDays - 1));
+
         const currentUserId = state.userId || state.phone || state.email;
-        if (currentUserId) {
-            firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted).catch(() => {
-                enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted]);
-            });
+
+        // Clear any existing debounce timer
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
         }
-    }, [state, activeData, persist, isDayAllowed]);
+
+        if (isFinalCompletionClick) {
+            // Final completion check: save immediately and block with loading screen for at least 3 seconds
+            if (currentUserId) {
+                setIsSaving(true);
+                setIsPreparingCertificate(true);
+                const startTime = Date.now();
+                try {
+                    await firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted);
+                } catch (err) {
+                    console.error('[Debounce] Final save failed, queuing offline sync', err);
+                    enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted]);
+                } finally {
+                    const elapsed = Date.now() - startTime;
+                    const remaining = 3000 - elapsed;
+                    if (remaining > 0) {
+                        await new Promise(resolve => setTimeout(resolve, remaining));
+                    }
+                    setIsPreparingCertificate(false);
+                }
+            }
+        } else {
+            // Normal habit check: debounce writing to Firestore by 3 seconds
+            if (currentUserId) {
+                debounceTimeoutRef.current = setTimeout(() => {
+                    firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted).catch((err) => {
+                        console.warn('[Debounce] Background save failed, queuing offline sync', err);
+                        enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted]);
+                    });
+                }, 3000);
+            }
+        }
+    }, [state, activeData, persist, isDayAllowed, totalDays]);
 
     // --- Reset ---
     const resetChallenge = useCallback(() => {
@@ -533,5 +578,8 @@ export function useChallenge() {
         resetChallenge,
         isDayCompleted,
         isDayAllowed,
+        isSaving,
+        isPreparingCertificate,
+        dismissSavingLoader
     };
 }
