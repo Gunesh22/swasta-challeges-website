@@ -45,6 +45,10 @@ function migrateState(raw, version) {
  */
 export function loadState() {
     try {
+        // Clean up obsolete long-term caches
+        localStorage.removeItem('tgf_challenges_cache');
+        localStorage.removeItem('tgf_admin_settings_cache');
+
         const raw = localStorage.getItem(STORAGE_KEY);
         const version = parseInt(localStorage.getItem(VERSION_KEY) || '1', 10);
 
