@@ -12,6 +12,8 @@ export function useChallenge() {
     const [isSaving, setIsSaving] = useState(false);
     const [isPreparingCertificate, setIsPreparingCertificate] = useState(false);
     const debounceTimeoutRef = useRef(null);
+    const certificatePdfBytes = useRef(null);
+    const certificateFontBytes = useRef(null);
 
     const dismissSavingLoader = useCallback(() => {
         setIsSaving(false);
@@ -185,21 +187,26 @@ export function useChallenge() {
 
     // --- Register User ---
     const register = useCallback(async (firstName, lastName, email, phone) => {
-        const name = `${firstName} ${lastName}`.trim();
+        const name = `${firstName}  ${lastName}`.trim();
         const userId = phone && phone.trim() ? phone.replace(/\D/g, '') : email.toLowerCase().trim();
 
         try {
             // First attempt to load participant details to recover profile if they are a returning user
             let remoteUser = await firestore.getParticipant(userId);
             if (!remoteUser) {
-                remoteUser = await firestore.registerParticipant({ name, email, phone });
+                remoteUser = await firestore.registerParticipant({ name, firstName, lastName, email, phone });
+            } else {
+                // Ensure name and other details are updated on the participant document
+                remoteUser = await firestore.registerParticipant({ name, firstName, lastName, email, phone });
             }
             if (remoteUser) {
                 const merged = {
                     ...state,
                     registered: true,
                     userId: remoteUser.id,
-                    name: remoteUser.name || name,
+                    name: name,
+                    firstName: remoteUser.firstName || firstName,
+                    lastName: remoteUser.lastName || lastName,
                     email: remoteUser.email || email,
                     phone: remoteUser.phone || phone || '',
                     selectedHabits: remoteUser.selectedHabits || [],
@@ -533,6 +540,43 @@ export function useChallenge() {
     const startPreparingCertificate = useCallback(() => {
         setIsSaving(true);
         setIsPreparingCertificate(true);
+
+        // Start background preloading of certificate template and font
+        (async () => {
+            try {
+                const promises = [];
+                if (!certificatePdfBytes.current) {
+                    promises.push(
+                        fetch('/certificate-template.pdf')
+                            .then(res => {
+                                if (!res.ok) throw new Error("PDF load failed");
+                                return res.arrayBuffer();
+                            })
+                            .then(bytes => {
+                                certificatePdfBytes.current = bytes;
+                            })
+                    );
+                }
+                if (!certificateFontBytes.current) {
+                    const fontUrl = 'https://fonts.gstatic.com/s/alexbrush/v22/SZc83FzrJKuqFbwMKk6EtUL57DtOmCc.ttf';
+                    promises.push(
+                        fetch(fontUrl)
+                            .then(res => {
+                                if (!res.ok) throw new Error("Font load failed");
+                                return res.arrayBuffer();
+                            })
+                            .then(bytes => {
+                                certificateFontBytes.current = bytes;
+                            })
+                    );
+                }
+                promises.push(document.fonts.load('44px "Alex Brush"'));
+                await Promise.all(promises);
+            } catch (err) {
+                console.warn('[Preload] Failed to pre-fetch certificate files in background:', err);
+            }
+        })();
+
         setTimeout(() => {
             setIsPreparingCertificate(false);
         }, 3000);
@@ -562,6 +606,8 @@ export function useChallenge() {
         isSaving,
         isPreparingCertificate,
         dismissSavingLoader,
-        startPreparingCertificate
+        startPreparingCertificate,
+        certificatePdfBytes,
+        certificateFontBytes
     };
 }

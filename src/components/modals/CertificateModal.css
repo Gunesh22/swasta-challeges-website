@@ -1,89 +1,48 @@
+@font-face {
+    font-family: 'Alex Brush';
+    src: url('https://fonts.gstatic.com/s/alexbrush/v22/SZc83FzrJKuqFbwMKk6EtUL57DtOmCc.ttf') format('truetype');
+}
+
 .certificate-modal {
     padding: 24px 16px 32px;
 }
 
-.certificate-wrapper {
-    padding: 4px;
-    background: linear-gradient(135deg, var(--gold-400), var(--green-600), var(--gold-400));
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-}
-
-.cert-border {
+.certificate-wrapper-canvas {
+    width: 100%;
     background: var(--bg-deep);
-    border-radius: calc(var(--radius-lg) - 3px);
-    padding: 4px;
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    margin-bottom: 20px;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border-medium);
 }
 
-.cert-content {
-    padding: 32px 20px;
-    border: 1px dashed rgba(255, 202, 40, 0.3);
-    border-radius: calc(var(--radius-lg) - 6px);
-    text-align: center;
-    background: radial-gradient(ellipse at 50% 20%, rgba(30, 70, 45, 0.3), transparent 70%);
-}
-
-.cert-lotus {
-    font-size: 36px;
-    margin-bottom: 8px;
-}
-
-.cert-pre {
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--gold-400);
-    font-weight: 600;
-}
-
-.cert-title {
-    font-family: var(--font-serif);
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 6px 0 12px;
-    line-height: 1.3;
-}
-
-.cert-divider {
-    width: 60px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-400), transparent);
-    margin: 14px auto;
-}
-
-.cert-awarded {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-
-.cert-name {
-    font-family: var(--font-serif);
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--gold-400);
-    margin: 6px 0;
-}
-
-.cert-body {
-    font-size: 0.82rem;
+.cert-canvas-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     color: var(--text-secondary);
-    line-height: 1.6;
-    margin-top: 8px;
 }
 
-.cert-date {
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    margin-top: 4px;
+.cert-canvas-error {
+    color: var(--error);
+    text-align: center;
+    padding: 20px;
 }
 
-.cert-org {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    letter-spacing: 0.06em;
+.preview-wrap {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 
 .cert-actions {

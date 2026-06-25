@@ -78,7 +78,12 @@ export async function registerParticipant({ name, email, phone }) {
         const snap = await getDoc(docRef);
 
         if (snap.exists()) {
-            return { id: docId, ...snap.data() };
+            const existingData = snap.data();
+            if (existingData.name !== name) {
+                await updateDoc(docRef, { name });
+                existingData.name = name;
+            }
+            return { id: docId, ...existingData };
         }
 
         const newData = {

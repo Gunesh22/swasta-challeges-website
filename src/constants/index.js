@@ -67,11 +67,13 @@ export const INITIAL_STATE = {
     registered: false,
     userId: null,
     name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     language: 'en',
     selectedHabits: [], // Array of 5 habit IDs selected by the user
-
+ 
     // Multi-Challenge Progress
     activeChallengeId: null,
     challenges: {},
