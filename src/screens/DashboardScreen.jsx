@@ -35,7 +35,8 @@ export function DashboardScreen() {
         streak,
         isSaving,
         isPreparingCertificate,
-        dismissSavingLoader
+        dismissSavingLoader,
+        startPreparingCertificate
     } = useChallengeContext();
 
     const navigate = useNavigate();
@@ -432,7 +433,7 @@ export function DashboardScreen() {
                                 </p>
                                 <button 
                                     className={`btn-get-certificate ${isPreparingCertificate ? 'btn-preparing' : ''}`} 
-                                    onClick={() => setShowCertificate(true)}
+                                    onClick={startPreparingCertificate}
                                     disabled={isPreparingCertificate}
                                 >
                                     {isPreparingCertificate ? (
@@ -713,7 +714,7 @@ export function DashboardScreen() {
                             <path d="M 72 72 C 60 70 55 60 50 50 C 60 55 70 60 72 72 Z" className="lotus-petal petal-diag4" fill="url(#lotusGrad)" opacity="0.8" />
                         </svg>
                         <h2 className="saving-title">
-                            {language === 'hi' ? 'आपकी साधना की सिद्धि...' : 'Honoring Your Dedication...'}
+                            {language === 'hi' ? 'चुनौतियों को पूरा करने के लिए सम्मान...' : 'Honouring for completing the challenges...'}
                         </h2>
                         <p className="saving-subtitle">
                             {language === 'hi'

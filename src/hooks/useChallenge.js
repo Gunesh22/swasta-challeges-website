@@ -469,8 +469,8 @@ export function useChallenge() {
 
         const selectedHabits = currentChallenge.selectedHabits || state.selectedHabits || [];
         const activeCompletions = habitCompletions || (currentChallenge.habitCompletions && currentChallenge.habitCompletions[dateForDay]) || {};
-        const isAllCompleted = selectedHabits.length > 0
-            ? selectedHabits.every(id => activeCompletions[id] === true)
+        const isAnyCompleted = selectedHabits.length > 0
+            ? selectedHabits.some(id => activeCompletions[id] === true)
             : false;
 
         const next = {
@@ -481,7 +481,7 @@ export function useChallenge() {
                     ...currentChallenge,
                     completedDays: {
                         ...(currentChallenge.completedDays || {}),
-                        [dateForDay]: isAllCompleted,
+                        [dateForDay]: isAnyCompleted,
                     },
                     reflections: {
                         ...(currentChallenge.reflections || {}),
@@ -498,11 +498,6 @@ export function useChallenge() {
         // Always update local state immediately for instant UI response
         persist(next);
 
-        // Smart Detection: Check if this completes the entire challenge
-        const completedDaysObj = currentChallenge.completedDays || {};
-        const completedOtherDaysCount = Object.keys(completedDaysObj).filter(date => date !== dateForDay && completedDaysObj[date] === true).length;
-        const isFinalCompletionClick = isAllCompleted && (completedOtherDaysCount === (totalDays - 1));
-
         const currentUserId = state.userId || state.phone || state.email;
 
         // Clear any existing debounce timer
@@ -510,36 +505,14 @@ export function useChallenge() {
             clearTimeout(debounceTimeoutRef.current);
         }
 
-        if (isFinalCompletionClick) {
-            // Final completion check: save immediately and block with loading screen for at least 3 seconds
-            if (currentUserId) {
-                setIsSaving(true);
-                setIsPreparingCertificate(true);
-                const startTime = Date.now();
-                try {
-                    await firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted);
-                } catch (err) {
-                    console.error('[Debounce] Final save failed, queuing offline sync', err);
-                    enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted]);
-                } finally {
-                    const elapsed = Date.now() - startTime;
-                    const remaining = 3000 - elapsed;
-                    if (remaining > 0) {
-                        await new Promise(resolve => setTimeout(resolve, remaining));
-                    }
-                    setIsPreparingCertificate(false);
-                }
-            }
-        } else {
-            // Normal habit check: debounce writing to Firestore by 3 seconds
-            if (currentUserId) {
-                debounceTimeoutRef.current = setTimeout(() => {
-                    firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted).catch((err) => {
-                        console.warn('[Debounce] Background save failed, queuing offline sync', err);
-                        enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAllCompleted]);
-                    });
-                }, 3000);
-            }
+        // Normal habit check: debounce writing to Firestore by 3 seconds
+        if (currentUserId) {
+            debounceTimeoutRef.current = setTimeout(() => {
+                firestore.completeDay(currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAnyCompleted).catch((err) => {
+                    console.warn('[Debounce] Background save failed, queuing offline sync', err);
+                    enqueueSync('completeDay', [currentUserId, challengeId, dateForDay, feeling, thought, habitCompletions, isAnyCompleted]);
+                });
+            }, 3000);
         }
     }, [state, activeData, persist, isDayAllowed, totalDays]);
 
@@ -556,6 +529,14 @@ export function useChallenge() {
         const dateForDay = getDateForDay(activeData.startDate, dayNum);
         return dateForDay ? !!(activeData.completedDays && activeData.completedDays[dateForDay]) : false;
     }, [activeData]);
+
+    const startPreparingCertificate = useCallback(() => {
+        setIsSaving(true);
+        setIsPreparingCertificate(true);
+        setTimeout(() => {
+            setIsPreparingCertificate(false);
+        }, 3000);
+    }, []);
 
     return {
         state,
@@ -580,6 +561,7 @@ export function useChallenge() {
         isDayAllowed,
         isSaving,
         isPreparingCertificate,
-        dismissSavingLoader
+        dismissSavingLoader,
+        startPreparingCertificate
     };
 }
