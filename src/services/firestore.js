@@ -291,7 +291,12 @@ export async function syncOfflineChallenges(userId, localChallenges, remoteChall
                 const missingHabitCompletions = {};
                 let needsMerge = false;
 
-                for (const [dateISO, _] of Object.entries(localData.completedDays || {})) {
+                for (const [dateISO, localValue] of Object.entries(localData.completedDays || {})) {
+                    // Only sync days the user actually completed offline (true).
+                    // Skip false entries — they mean "visited but not done" and must
+                    // never overwrite or fabricate a completion in Firestore.
+                    if (localValue !== true) continue;
+
                     if (!remoteData.completedDays?.[dateISO]) {
                         missingDays[dateISO] = true;
                         if (localData.reflections?.[dateISO]) {
