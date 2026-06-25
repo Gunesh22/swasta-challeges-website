@@ -422,11 +422,6 @@ export function DashboardScreen() {
                                 <div className="celebration-shine" />
                                 <span className="material-symbols-outlined trophy-glow">workspace_premium</span>
                                 <h4>{language === 'hi' ? 'बधाई हो! चुनौती पूरी हुई' : 'Congratulations! Journey Complete'}</h4>
-                                <p>
-                                    {language === 'hi' 
-                                        ? `आपने इस यात्रा के सभी ${totalDays} दिन सफलतापूर्वक पूरे किए हैं!` 
-                                        : `You have completed all ${totalDays} days of ${activeChallengeDef?.title || 'your challenge'}!`}
-                                </p>
                                 <button 
                                     className={`btn-get-certificate ${isPreparingCertificate ? 'btn-preparing' : ''}`} 
                                     onClick={startPreparingCertificate}
