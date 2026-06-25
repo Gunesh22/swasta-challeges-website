@@ -138,7 +138,9 @@ export async function joinChallenge(userId, challengeId, startDate, selectedHabi
         if (snap.exists()) {
             const data = snap.data();
             const updates = {};
-            if (!data.startDate && startDate) {
+            // Always sync the official startDate — overwrite any wrong value
+            // that may have been written when the user registered on the wrong day.
+            if (startDate) {
                 updates.startDate = startDate;
             }
             if ((!data.selectedHabits || data.selectedHabits.length === 0) && selectedHabits.length > 0) {

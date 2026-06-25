@@ -277,10 +277,10 @@ export function useChallenge() {
         const today = getTodayISO();
         const def = availableChallenges.find(c => c.id === challengeId);
 
-        let actualStartDate = today;
-        if (def && def.startType === 'cohort' && def.startDate) {
-            actualStartDate = def.startDate;
-        }
+        // Use the challenge's official start date if defined, so late joiners
+        // are placed on the correct day (e.g. joining Day 4 shows Day 4, not Day 1).
+        const officialStart = def?.startDate || def?.availableFrom || null;
+        let actualStartDate = officialStart ? officialStart : today;
 
         const challengeHabits = def?.habits?.length > 0
             ? def.habits
@@ -333,10 +333,10 @@ export function useChallenge() {
         const today = getTodayISO();
         const def = availableChallenges.find(c => c.id === challengeId);
 
-        let actualStartDate = today;
-        if (def && def.startType === 'cohort' && def.startDate) {
-            actualStartDate = def.startDate;
-        }
+        // Use the challenge's official start date if defined, so late joiners
+        // are placed on the correct day (e.g. joining Day 4 shows Day 4, not Day 1).
+        const officialStart = def?.startDate || def?.availableFrom || null;
+        let actualStartDate = officialStart ? officialStart : today;
 
         const next = { 
             ...state, 
