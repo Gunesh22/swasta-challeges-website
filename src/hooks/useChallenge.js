@@ -11,6 +11,7 @@ export function useChallenge() {
     const [isDataLoaded, setIsDataLoaded] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isPreparingCertificate, setIsPreparingCertificate] = useState(false);
+    const [selectedDay, setSelectedDay] = useState(1);
     const debounceTimeoutRef = useRef(null);
     const certificatePdfBytes = useRef(null);
     const certificateFontBytes = useRef(null);
@@ -425,12 +426,30 @@ export function useChallenge() {
     // Clamped for UI display (never shows > totalDays)
     const clampedCurrentDay = Math.min(rawCurrentDay, totalDays);
 
+    // Sync selectedDay with clampedCurrentDay on load or rollover
+    useEffect(() => {
+        if (isDataLoaded) {
+            setSelectedDay(clampedCurrentDay);
+        }
+    }, [isDataLoaded, clampedCurrentDay]);
+
+    // The challenge end date is startDate + (totalDays - 1).
+    // We compute it from startDate so it is immune to a corrupted rawCurrentDay.
+    const challengeEndDateISO = useMemo(() => {
+        if (!activeData?.startDate || !totalDays) return null;
+        return getDateForDay(activeData.startDate, totalDays);
+    }, [activeData, totalDays]);
+
     // --- Certificate eligibility ---
     // Count only days where the value is strictly `true` (habit was logged)
+    // and falls within the active challenge start and end dates.
     const completedCount = useMemo(() => {
-        if (!activeData?.completedDays) return 0;
-        return Object.values(activeData.completedDays).filter(v => v === true).length;
-    }, [activeData]);
+        if (!activeData?.completedDays || !activeData?.startDate || !challengeEndDateISO) return 0;
+        const startISO = activeData.startDate;
+        return Object.entries(activeData.completedDays).filter(([dateISO, v]) => {
+            return v === true && dateISO >= startISO && dateISO <= challengeEndDateISO;
+        }).length;
+    }, [activeData, challengeEndDateISO]);
 
     // Dynamic certificate eligibility threshold:
     // - 7-day challenges: requires at least 5 completed days.
@@ -443,25 +462,6 @@ export function useChallenge() {
         return completedCount >= requiredDaysForCertificate;
     }, [completedCount, requiredDaysForCertificate]);
 
-    // The challenge end date is startDate + (totalDays - 1).
-    // We compute it from startDate so it is immune to a corrupted rawCurrentDay.
-    const challengeEndDateISO = useMemo(() => {
-        if (!activeData?.startDate || !totalDays) return null;
-        return getDateForDay(activeData.startDate, totalDays);
-    }, [activeData, totalDays]);
-
-    // Whether the calendar has reached or passed the last day
-    const isOnOrPastLastDay = useMemo(() => {
-        if (!challengeEndDateISO) return false;
-        return getTodayISO() >= challengeEndDateISO;
-    }, [challengeEndDateISO]);
-
-    // Whether the user has explicitly marked the last day as complete in their data
-    const isLastDayMarkedComplete = useMemo(() => {
-        if (!challengeEndDateISO || !activeData?.completedDays) return false;
-        return activeData.completedDays[challengeEndDateISO] === true;
-    }, [challengeEndDateISO, activeData]);
-
     // Test users: they can unlock all days, but they STILL must mark the last day
     // complete to get the certificate. Only the calendar-wait is bypassed for them.
     const isTestUser = useMemo(() => {
@@ -473,6 +473,21 @@ export function useChallenge() {
             uid === '1111100000' || email === 'admin@tgf.com' || name === 'tgf admin'
         );
     }, [state.userId, state.phone, state.email, state.name]);
+
+    // Whether the calendar has reached or passed the last day
+    const isOnOrPastLastDay = useMemo(() => {
+        if (!challengeEndDateISO) return false;
+        return getTodayISO() >= challengeEndDateISO;
+    }, [challengeEndDateISO]);
+
+    // Whether the user has explicitly marked the last day as complete in their data
+    // OR for test users: they have navigated/selected the last day in the UI.
+    const isLastDayMarkedComplete = useMemo(() => {
+        if (!challengeEndDateISO || !activeData?.completedDays) return false;
+        const isCompleted = activeData.completedDays[challengeEndDateISO] === true;
+        const isViewingLastDay = isTestUser && selectedDay === totalDays;
+        return isCompleted || isViewingLastDay;
+    }, [challengeEndDateISO, activeData, isTestUser, selectedDay, totalDays]);
 
     const isChallengeComplete = useMemo(() => {
         // Gate 1: last-day gate
@@ -657,6 +672,8 @@ export function useChallenge() {
         adminSettings,
         totalDays,
         currentDay: clampedCurrentDay,
+        selectedDay,
+        setSelectedDay,
         completedCount,
         isChallengeComplete,
         isChallengeFailed,

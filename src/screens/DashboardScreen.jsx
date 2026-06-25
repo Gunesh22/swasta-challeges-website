@@ -18,6 +18,8 @@ export function DashboardScreen() {
     const {
         state,
         currentDay,
+        selectedDay,
+        setSelectedDay,
         isDayCompleted,
         isDayAllowed,
         isChallengeComplete,
@@ -42,9 +44,6 @@ export function DashboardScreen() {
     const navigate = useNavigate();
     const scrollContainerRef = useRef(null);
     const toastTimeoutRef = useRef(null);
-
-    // Selected day - defaults to currentDay
-    const [selectedDay, setSelectedDay] = useState(currentDay);
     
     // Tab State: 'today' | 'progress' | 'wisdom'
     const [activeTab, setActiveTab] = useState('today');
@@ -90,10 +89,7 @@ export function DashboardScreen() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [activeTab, selectedDay]);
 
-    // Sync selected day if the actual current challenge day rolls over
-    useEffect(() => {
-        setSelectedDay(currentDay);
-    }, [currentDay]);
+
 
     // Fetch details for the selected day
     const selectedDayData = useMemo(() => {
