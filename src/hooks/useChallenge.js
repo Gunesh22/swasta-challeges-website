@@ -432,7 +432,16 @@ export function useChallenge() {
         return Object.values(activeData.completedDays).filter(v => v === true).length;
     }, [activeData]);
 
-    const isEligibleForCertificate = completedCount >= 5;
+    // Dynamic certificate eligibility threshold:
+    // - 7-day challenges: requires at least 5 completed days.
+    // - 21-day challenges (or any other length): requires at least 15 completed days.
+    const requiredDaysForCertificate = useMemo(() => {
+        return totalDays <= 7 ? 5 : 15;
+    }, [totalDays]);
+
+    const isEligibleForCertificate = useMemo(() => {
+        return completedCount >= requiredDaysForCertificate;
+    }, [completedCount, requiredDaysForCertificate]);
 
     // The challenge end date is startDate + (totalDays - 1).
     // We compute it from startDate so it is immune to a corrupted rawCurrentDay.
