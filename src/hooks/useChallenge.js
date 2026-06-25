@@ -423,8 +423,65 @@ export function useChallenge() {
     // Clamped for UI display (never shows > totalDays)
     const clampedCurrentDay = Math.min(rawCurrentDay, totalDays);
 
-    const completedCount = useMemo(() => activeData ? Object.keys(activeData.completedDays || {}).filter(date => activeData.completedDays[date]).length : 0, [activeData]);
-    const isChallengeComplete = completedCount >= totalDays;
+    // --- Certificate eligibility ---
+    // Count only days where the value is strictly `true` (habit was logged)
+    const completedCount = useMemo(() => {
+        if (!activeData?.completedDays) return 0;
+        return Object.values(activeData.completedDays).filter(v => v === true).length;
+    }, [activeData]);
+
+    const isEligibleForCertificate = completedCount >= 5;
+
+    // The challenge end date is startDate + (totalDays - 1).
+    // We compute it from startDate so it is immune to a corrupted rawCurrentDay.
+    const challengeEndDateISO = useMemo(() => {
+        if (!activeData?.startDate || !totalDays) return null;
+        return getDateForDay(activeData.startDate, totalDays);
+    }, [activeData, totalDays]);
+
+    // Whether the calendar has reached or passed the last day
+    const isOnOrPastLastDay = useMemo(() => {
+        if (!challengeEndDateISO) return false;
+        return getTodayISO() >= challengeEndDateISO;
+    }, [challengeEndDateISO]);
+
+    // Whether the user has explicitly marked the last day as complete in their data
+    const isLastDayMarkedComplete = useMemo(() => {
+        if (!challengeEndDateISO || !activeData?.completedDays) return false;
+        return activeData.completedDays[challengeEndDateISO] === true;
+    }, [challengeEndDateISO, activeData]);
+
+    // Test users: they can unlock all days, but they STILL must mark the last day
+    // complete to get the certificate. Only the calendar-wait is bypassed for them.
+    const isTestUser = useMemo(() => {
+        const uid = state.userId || state.phone || state.email || '';
+        const email = (state.email || '').toLowerCase();
+        const name = (state.name || '').toLowerCase();
+        return (
+            uid === '0000011111' || email === 'f@gmail.com' || name === 'testf testl' ||
+            uid === '1111100000' || email === 'admin@tgf.com' || name === 'tgf admin'
+        );
+    }, [state.userId, state.phone, state.email, state.name]);
+
+    const isChallengeComplete = useMemo(() => {
+        // Gate 1: last-day gate
+        //   - Regular users: today must be >= challenge end date (calendar-based)
+        //   - Test users:    last day must be marked complete (calendar wait skipped)
+        const lastDayGatePassed = isTestUser ? isLastDayMarkedComplete : isOnOrPastLastDay;
+        // Gate 2: at least 5 days logged
+        const result = lastDayGatePassed && isEligibleForCertificate;
+        console.log('[useChallenge] isChallengeComplete:', {
+            isTestUser,
+            isLastDayMarkedComplete,
+            isOnOrPastLastDay,
+            challengeEndDateISO,
+            today: getTodayISO(),
+            completedCount,
+            isEligibleForCertificate,
+            result
+        });
+        return result;
+    }, [isTestUser, isLastDayMarkedComplete, isOnOrPastLastDay, isEligibleForCertificate, challengeEndDateISO, completedCount]);
 
     // Grace period: allow up to 2 days after the challenge ends so users
     // who missed the last day(s) can still catch up before being marked "failed"
@@ -439,14 +496,13 @@ export function useChallenge() {
     const isDayAllowed = useCallback((dayNum) => {
         if (!activeData) return false;
 
-        // Open all days only for user 0000011111
+        // Open all days for test users
         const currentUserId = state.userId || state.phone || state.email;
-        const currentEmail = state.email || '';
-        const currentName = state.name || '';
+        const currentEmail = (state.email || '').toLowerCase();
+        const currentName = (state.name || '').toLowerCase();
         if (
-            currentUserId === '0000011111' || 
-            currentEmail.toLowerCase() === 'f@gmail.com' ||
-            currentName.toLowerCase() === 'testf testl'
+            currentUserId === '0000011111' || currentEmail === 'f@gmail.com' || currentName === 'testf testl' ||
+            currentUserId === '1111100000' || currentEmail === 'admin@tgf.com' || currentName === 'tgf admin'
         ) {
             return dayNum >= 1 && dayNum <= totalDays;
         }
